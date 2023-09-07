@@ -21,6 +21,7 @@ import BinaryStringInput from './components/BinaryStringInput';
 import { BinaryString, ValidatedInputValue } from './utils/types';
 import passThroughChannel from './logic/channel';
 import repeatEncode from './logic/encoding/repeatEncoding';
+import { binaryStringToString } from './utils/type-utils';
 
 const App = () => {
   const [pe, setPe] = useState<ValidatedInputValue<number>>({
@@ -63,10 +64,7 @@ const App = () => {
     const newY = passThroughChannel(c, pe.validValue);
     setY({
       status: 'success',
-      input: newY.reduce<string>(
-        (accumulator, currentValue) => accumulator.concat(currentValue),
-        '',
-      ),
+      input: binaryStringToString(newY),
       validValue: newY,
     });
   }, [c, pe]);
@@ -120,7 +118,7 @@ const App = () => {
                   <InputLeftAddon>c</InputLeftAddon>
                   <Input
                     isReadOnly
-                    value={c}
+                    value={binaryStringToString(c)}
                     isDisabled={m.status === 'fail' || m.status === 'pending'}
                   />
                 </InputGroup>

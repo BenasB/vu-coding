@@ -20,8 +20,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "esModuleInterop": true
   },
-  "include": ["src"],
+  "include": ["src", "./jest.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
