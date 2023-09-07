@@ -5,7 +5,6 @@ import {
   InputProps,
   FormControl,
   FormErrorMessage,
-  Button,
   InputRightElement,
 } from '@chakra-ui/react';
 import React from 'react';
@@ -52,7 +51,9 @@ const BinaryStringInput: React.FC<Props> = ({
         {title && <InputLeftAddon>{title}</InputLeftAddon>}
         <Input value={value.input} onChange={handleOnChange} {...inputProps} />
         {inputRightElementContent && (
-          <InputRightElement>{inputRightElementContent}</InputRightElement>
+          <InputRightElement width="4.5rem">
+            {inputRightElementContent}
+          </InputRightElement>
         )}
       </InputGroup>
       {value.status === 'fail' && (

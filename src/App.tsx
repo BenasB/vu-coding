@@ -15,6 +15,7 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
+  Tooltip,
   VStack,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -139,9 +140,26 @@ const App = () => {
                   inputProps={{
                     isDisabled: m.status === 'fail' || m.status === 'pending',
                   }}
-                  inputRightElementContent={<Button>Reset</Button>}
+                  inputRightElementContent={
+                    changedY ? (
+                      <Tooltip label="You have made changes to this value. Reset to initial value?">
+                        <Button
+                          h="75%"
+                          size="sm"
+                          onClick={() =>
+                            setY({
+                              status: 'success',
+                              validValue: initialY,
+                              input: binaryStringToString(initialY),
+                            })
+                          }
+                        >
+                          Reset
+                        </Button>
+                      </Tooltip>
+                    ) : undefined
+                  }
                 />
-                {changedY && <div>Nesutampa</div>}
                 <InputGroup>
                   <InputLeftAddon>m′</InputLeftAddon>
                   <Input
