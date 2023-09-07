@@ -1,4 +1,5 @@
 import {
+  Button,
   Center,
   Container,
   FormControl,
@@ -48,6 +49,7 @@ const App = () => {
     input: '',
   });
 
+  const [initialY, setInitialY] = useState<BinaryString>([]);
   const [y, setY] = useState<ValidatedInputValue<BinaryString>>({
     status: 'pending',
     input: '',
@@ -67,7 +69,15 @@ const App = () => {
       input: binaryStringToString(newY),
       validValue: newY,
     });
+    setInitialY(newY);
   }, [c, pe]);
+
+  const changedY = useMemo(
+    () =>
+      y.status === 'success' &&
+      binaryStringToString(initialY) !== binaryStringToString(y.validValue),
+    [y, initialY],
+  );
 
   return (
     <Container maxW="container.md">
@@ -129,7 +139,9 @@ const App = () => {
                   inputProps={{
                     isDisabled: m.status === 'fail' || m.status === 'pending',
                   }}
+                  inputRightElementContent={<Button>Reset</Button>}
                 />
+                {changedY && <div>Nesutampa</div>}
                 <InputGroup>
                   <InputLeftAddon>m′</InputLeftAddon>
                   <Input

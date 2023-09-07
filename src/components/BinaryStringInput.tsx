@@ -5,6 +5,8 @@ import {
   InputProps,
   FormControl,
   FormErrorMessage,
+  Button,
+  InputRightElement,
 } from '@chakra-ui/react';
 import React from 'react';
 import { BinaryString, ValidatedInputValue } from '../utils/types';
@@ -14,6 +16,7 @@ interface Props {
   onChange?: (newValue: ValidatedInputValue<BinaryString>) => void;
   title?: string | JSX.Element;
   inputProps?: InputProps;
+  inputRightElementContent?: JSX.Element;
 }
 
 const BinaryStringInput: React.FC<Props> = ({
@@ -21,6 +24,7 @@ const BinaryStringInput: React.FC<Props> = ({
   inputProps,
   value,
   onChange,
+  inputRightElementContent,
 }) => {
   const regex = /^[01]+$/;
   const validate = (value: string) => regex.test(value);
@@ -47,6 +51,9 @@ const BinaryStringInput: React.FC<Props> = ({
       <InputGroup>
         {title && <InputLeftAddon>{title}</InputLeftAddon>}
         <Input value={value.input} onChange={handleOnChange} {...inputProps} />
+        {inputRightElementContent && (
+          <InputRightElement>{inputRightElementContent}</InputRightElement>
+        )}
       </InputGroup>
       {value.status === 'fail' && (
         <FormErrorMessage>This is not a binary string</FormErrorMessage>
