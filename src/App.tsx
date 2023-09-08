@@ -24,6 +24,7 @@ import { BinaryString, ValidatedInputValue } from './utils/types';
 import passThroughChannel from './logic/channel';
 import repeatEncode from './logic/encoding/repeatEncoding';
 import { binaryStringToString } from './utils/type-utils';
+import repeatDecode from './logic/decoding/repeatDecoding';
 
 const App = () => {
   const [pe, setPe] = useState<ValidatedInputValue<number>>({
@@ -73,11 +74,19 @@ const App = () => {
     setInitialY(newY);
   }, [c, pe]);
 
-  const changedY = useMemo(
+  const isYChanged = useMemo(
     () =>
       y.status === 'success' &&
       binaryStringToString(initialY) !== binaryStringToString(y.validValue),
     [y, initialY],
+  );
+
+  const mPrime = useMemo(
+    () =>
+      y.status === 'success'
+        ? binaryStringToString(repeatDecode(y.validValue, 3))
+        : '',
+    [y],
   );
 
   return (
@@ -141,7 +150,7 @@ const App = () => {
                     isDisabled: m.status === 'fail' || m.status === 'pending',
                   }}
                   inputRightElementContent={
-                    changedY ? (
+                    isYChanged ? (
                       <Tooltip label="You have made changes to this value. Reset to initial value?">
                         <Button
                           h="75%"
@@ -165,6 +174,7 @@ const App = () => {
                   <Input
                     isReadOnly
                     isDisabled={m.status === 'fail' || m.status === 'pending'}
+                    value={mPrime}
                   />
                 </InputGroup>
               </VStack>
