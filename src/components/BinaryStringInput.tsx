@@ -41,6 +41,7 @@ const BinaryStringInput: React.FC<Props> = ({
         onChange({
           status: 'fail',
           input: e.target.value,
+          message: 'This is not a binary string',
         });
     }
   };
@@ -57,7 +58,7 @@ const BinaryStringInput: React.FC<Props> = ({
         )}
       </InputGroup>
       {value.status === 'fail' && (
-        <FormErrorMessage>This is not a binary string</FormErrorMessage>
+        <FormErrorMessage>{value.message}</FormErrorMessage>
       )}
     </FormControl>
   );

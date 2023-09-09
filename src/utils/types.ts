@@ -17,6 +17,7 @@ interface ValidationSuccess<T> {
 interface ValidationFail {
   status: 'fail';
   input: string;
+  message: string;
 }
 
 export type BinaryString = ('0' | '1')[];
