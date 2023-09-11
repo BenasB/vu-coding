@@ -22,13 +22,17 @@ const App = () => {
     parameterInputContextPropsInitial.pe,
   );
 
+  const [n, setN] = useState<ValidatedInputValue<number>>(
+    parameterInputContextPropsInitial.n,
+  );
+
   return (
     <Container maxW="container.md">
       <Heading py={50}>
         <Center>Encoding</Center>
       </Heading>
       <VStack align={'stretch'} spacing={4}>
-        <ParameterInputGroup pe={pe} setPe={setPe} />
+        <ParameterInputGroup pe={pe} setPe={setPe} n={n} setN={setN} />
 
         <Tabs>
           <TabList>
@@ -37,7 +41,7 @@ const App = () => {
             <Tab isDisabled>Image</Tab>
           </TabList>
 
-          <ParameterInputContext.Provider value={{ pe }}>
+          <ParameterInputContext.Provider value={{ pe, n }}>
             <TabPanels>
               <TabPanel px={0}>
                 <RawTabPanel />

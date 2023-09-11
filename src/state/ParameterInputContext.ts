@@ -3,6 +3,7 @@ import { ValidatedInputValue } from '../utils/types';
 
 interface ParameterInputContextProps {
   pe: ValidatedInputValue<number>;
+  n: ValidatedInputValue<number>;
 }
 
 export const parameterInputContextPropsInitial: ParameterInputContextProps = {
@@ -10,6 +11,11 @@ export const parameterInputContextPropsInitial: ParameterInputContextProps = {
     status: 'success',
     input: '0.1',
     validValue: 0.1,
+  },
+  n: {
+    status: 'success',
+    input: '3',
+    validValue: 3,
   },
 };
 

@@ -21,7 +21,7 @@ interface Props {
 }
 
 const BaseTabPanel: React.FC<Props> = ({ m }) => {
-  const { pe } = useGetParameterInput();
+  const { pe, n } = useGetParameterInput();
   const [initialY, setInitialY] = useState<BinaryString>([]);
   const [y, setY] = useState<ValidatedInputValue<BinaryString>>({
     status: 'pending',
@@ -29,8 +29,11 @@ const BaseTabPanel: React.FC<Props> = ({ m }) => {
   });
 
   const c = useMemo<BinaryString>(
-    () => (m.status === 'success' ? repeatEncode(m.validValue, 3) : []),
-    [m],
+    () =>
+      m.status === 'success' && n.status === 'success'
+        ? repeatEncode(m.validValue, n.validValue)
+        : [],
+    [m, n],
   );
 
   useEffect(() => {
@@ -53,13 +56,13 @@ const BaseTabPanel: React.FC<Props> = ({ m }) => {
   );
 
   const mPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (y.status !== 'success')
+    if (y.status !== 'success' || n.status !== 'success')
       return {
         status: 'pending',
         input: '',
       };
     try {
-      const decodedValue = repeatDecode(y.validValue, 3);
+      const decodedValue = repeatDecode(y.validValue, n.validValue);
       return {
         status: 'success',
         input: binaryStringToString(decodedValue),
@@ -79,7 +82,7 @@ const BaseTabPanel: React.FC<Props> = ({ m }) => {
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [y]);
+  }, [y, n]);
 
   return (
     <>
