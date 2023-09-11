@@ -14,7 +14,7 @@ export const textToBinaryString: (input: string) => BinaryString = (
       .split('')
       .map<string>(char => char.charCodeAt(0).toString(2))
       .map<string>(str => str.padStart(16, '0')) // default encoding is UTF-16 so padding is needed
-      .join(),
+      .join(''),
   );
 
 export const stringToBinaryString: (input: string) => BinaryString = (
