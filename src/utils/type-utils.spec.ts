@@ -74,4 +74,13 @@ describe('textToBinaryString', () => {
       textToBinaryString('č').slice(-charInBinary.length),
     ).toEqual<BinaryString>(charInBinary);
   });
+  it('converts multiple chars', () => {
+    const binary = textToBinaryString('ab');
+    const charOne = binary.slice(0, binary.length / 2);
+    const charTwo = binary.slice(binary.length / 2);
+    const aInBinary: BinaryString = ['1', '1', '0', '0', '0', '0', '1'];
+    const bInBinary: BinaryString = ['1', '1', '0', '0', '0', '1', '0'];
+    expect(charOne.slice(-aInBinary.length)).toEqual<BinaryString>(aInBinary);
+    expect(charTwo.slice(-bInBinary.length)).toEqual<BinaryString>(bInBinary);
+  });
 });
