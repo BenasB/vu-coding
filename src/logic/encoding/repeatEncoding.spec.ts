@@ -1,3 +1,4 @@
+import { BinaryString } from '../../utils/types';
 import repeatEncode from './repeatEncoding';
 
 describe('repeatEncode', () => {
@@ -8,10 +9,10 @@ describe('repeatEncode', () => {
     expect(repeatEncode(['1', '0', '1'], 0)).toHaveLength(0);
   });
   it('encodes single bit', () => {
-    expect(repeatEncode(['0'], 3)).toEqual(['0', '0', '0']);
+    expect(repeatEncode(['0'], 3)).toEqual<BinaryString>(['0', '0', '0']);
   });
   it('encodes multiple bits', () => {
-    expect(repeatEncode(['1', '0', '0', '1', '1'], 3)).toEqual([
+    expect(repeatEncode(['1', '0', '0', '1', '1'], 3)).toEqual<BinaryString>([
       '1',
       '1',
       '1',

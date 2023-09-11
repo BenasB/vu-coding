@@ -1,8 +1,9 @@
+import { BinaryString } from '../../utils/types';
 import repeatDecode from './repeatDecoding';
 
 describe('repeatDecode', () => {
   it('decodes nothing', () => {
-    expect(repeatDecode([], 3)).toEqual([]);
+    expect(repeatDecode([], 3)).toEqual<BinaryString>([]);
   });
 
   it('throws error when input length is not divisible by n', () => {
@@ -10,26 +11,31 @@ describe('repeatDecode', () => {
   });
 
   it('decodes same as input when n is 1', () => {
-    expect(repeatDecode(['1', '0', '1', '1'], 1)).toEqual(['1', '0', '1', '1']);
+    expect(repeatDecode(['1', '0', '1', '1'], 1)).toEqual<BinaryString>([
+      '1',
+      '0',
+      '1',
+      '1',
+    ]);
   });
 
   it('prefers 0 when amount of 1s and 0s is equal', () => {
-    expect(repeatDecode(['0', '1'], 2)).toEqual(['0']);
+    expect(repeatDecode(['0', '1'], 2)).toEqual<BinaryString>(['0']);
   });
 
   it('decodes single correct bit', () => {
-    expect(repeatDecode(['1', '1', '1'], 3)).toEqual(['1']);
-    expect(repeatDecode(['0', '0', '0'], 3)).toEqual(['0']);
+    expect(repeatDecode(['1', '1', '1'], 3)).toEqual<BinaryString>(['1']);
+    expect(repeatDecode(['0', '0', '0'], 3)).toEqual<BinaryString>(['0']);
   });
 
   it('decodes single noise bit', () => {
-    expect(repeatDecode(['0', '1', '1'], 3)).toEqual(['1']);
-    expect(repeatDecode(['1', '0', '1'], 3)).toEqual(['1']);
-    expect(repeatDecode(['1', '1', '0'], 3)).toEqual(['1']);
+    expect(repeatDecode(['0', '1', '1'], 3)).toEqual<BinaryString>(['1']);
+    expect(repeatDecode(['1', '0', '1'], 3)).toEqual<BinaryString>(['1']);
+    expect(repeatDecode(['1', '1', '0'], 3)).toEqual<BinaryString>(['1']);
 
-    expect(repeatDecode(['1', '0', '0'], 3)).toEqual(['0']);
-    expect(repeatDecode(['0', '1', '0'], 3)).toEqual(['0']);
-    expect(repeatDecode(['0', '0', '1'], 3)).toEqual(['0']);
+    expect(repeatDecode(['1', '0', '0'], 3)).toEqual<BinaryString>(['0']);
+    expect(repeatDecode(['0', '1', '0'], 3)).toEqual<BinaryString>(['0']);
+    expect(repeatDecode(['0', '0', '1'], 3)).toEqual<BinaryString>(['0']);
   });
 
   it('decodes multiple correct bits', () => {
@@ -54,7 +60,7 @@ describe('repeatDecode', () => {
         ],
         3,
       ),
-    ).toEqual(['1', '0', '1', '0', '0']);
+    ).toEqual<BinaryString>(['1', '0', '1', '0', '0']);
   });
 
   it('decodes multiple noise bits', () => {
@@ -79,6 +85,6 @@ describe('repeatDecode', () => {
         ],
         3,
       ),
-    ).toEqual(['0', '1', '1', '0', '0']);
+    ).toEqual<BinaryString>(['0', '1', '1', '0', '0']);
   });
 });
