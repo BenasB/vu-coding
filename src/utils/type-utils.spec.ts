@@ -1,5 +1,6 @@
 import {
   binaryStringToString,
+  binaryStringToText,
   stringToBinaryString,
   textToBinaryString,
 } from './type-utils';
@@ -82,5 +83,35 @@ describe('textToBinaryString', () => {
     const bInBinary: BinaryString = ['1', '1', '0', '0', '0', '1', '0'];
     expect(charOne.slice(-aInBinary.length)).toEqual<BinaryString>(aInBinary);
     expect(charTwo.slice(-bInBinary.length)).toEqual<BinaryString>(bInBinary);
+  });
+});
+
+describe('binaryStringToText', () => {
+  it('converts empty', () => {
+    expect(binaryStringToText([])).toBe('');
+  });
+  it('expects the input to be padded', () => {
+    expect(() => binaryStringToText(['0'])).toThrowError();
+  });
+  it('converts single char', () => {
+    const aInBinary: BinaryString = [
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '0',
+      '1',
+      '1',
+      '0',
+      '0',
+      '0',
+      '0',
+      '1',
+    ];
+    expect(binaryStringToText(aInBinary)).toBe('a');
   });
 });
