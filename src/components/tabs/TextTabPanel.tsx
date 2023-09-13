@@ -17,7 +17,7 @@ import { BinaryString, ValidatedInputValue } from '../../utils/types';
 
 const RawTabPanel: React.FC = () => {
   const [textInput, setTextInput] = useState<string>('');
-  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOnTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTextInput(e.target.value);
   };
 
@@ -86,7 +86,7 @@ const RawTabPanel: React.FC = () => {
       <FormControl>
         <InputGroup>
           <InputLeftAddon>Input</InputLeftAddon>
-          <Input value={textInput} onChange={handleOnChange} />
+          <Input value={textInput} onChange={handleOnTextInputChange} />
         </InputGroup>
       </FormControl>
       <BaseTabPanel m={m} mPrime={mPrime} setMPrime={setMPrime} />

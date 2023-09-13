@@ -17,6 +17,7 @@ import ParameterInputContext, {
   parameterInputContextPropsInitial,
 } from './state/ParameterInputContext';
 import TextTabPanel from './components/tabs/TextTabPanel';
+import ImageTabPanel from './components/tabs/ImageTabPanel';
 
 const App = () => {
   const [pe, setPe] = useState<ValidatedInputValue<number>>(
@@ -39,7 +40,7 @@ const App = () => {
           <TabList>
             <Tab>Raw</Tab>
             <Tab>Text</Tab>
-            <Tab isDisabled>Image</Tab>
+            <Tab>Image</Tab>
           </TabList>
 
           <ParameterInputContext.Provider value={{ pe, n }}>
@@ -49,6 +50,9 @@ const App = () => {
               </TabPanel>
               <TabPanel px={0}>
                 <TextTabPanel />
+              </TabPanel>
+              <TabPanel px={0}>
+                <ImageTabPanel />
               </TabPanel>
             </TabPanels>
           </ParameterInputContext.Provider>
