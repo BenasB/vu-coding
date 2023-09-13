@@ -18,9 +18,19 @@ import { useGetParameterInput } from '../../state/ParameterInputContext';
 
 interface Props {
   m: ValidatedInputValue<BinaryString>;
+  mPrime: ValidatedInputValue<BinaryString>;
+  setMPrime: React.Dispatch<
+    React.SetStateAction<ValidatedInputValue<BinaryString>>
+  >;
+  displayM?: boolean;
 }
 
-const BaseTabPanel: React.FC<Props> = ({ m }) => {
+const BaseTabPanel: React.FC<Props> = ({
+  m,
+  mPrime,
+  setMPrime,
+  displayM = true,
+}) => {
   const { pe, n } = useGetParameterInput();
   const [initialY, setInitialY] = useState<BinaryString>([]);
   const [y, setY] = useState<ValidatedInputValue<BinaryString>>({
@@ -55,37 +65,52 @@ const BaseTabPanel: React.FC<Props> = ({ m }) => {
     [y, initialY],
   );
 
-  const mPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (y.status !== 'success' || n.status !== 'success')
-      return {
+  useEffect(() => {
+    if (y.status !== 'success' || n.status !== 'success') {
+      setMPrime({
         status: 'pending',
         input: '',
-      };
+      });
+      return;
+    }
+
     try {
       const decodedValue = repeatDecode(y.validValue, n.validValue);
-      return {
+      setMPrime({
         status: 'success',
         input: binaryStringToString(decodedValue),
         validValue: decodedValue,
-      };
+      });
     } catch (err) {
-      if (err instanceof Error)
-        return {
+      if (err instanceof Error) {
+        setMPrime({
           status: 'fail',
           input: '',
           message: err.message,
-        };
+        });
+        return;
+      }
 
-      return {
+      setMPrime({
         status: 'fail',
         input: '',
         message: 'Ran into a problem while decoding',
-      };
+      });
     }
-  }, [y, n]);
+  }, [y, n, setMPrime]);
 
   return (
     <>
+      {displayM && (
+        <InputGroup>
+          <InputLeftAddon>m</InputLeftAddon>
+          <Input
+            isReadOnly
+            value={m.input}
+            isDisabled={m.status !== 'success'}
+          />
+        </InputGroup>
+      )}
       <InputGroup>
         <InputLeftAddon>c</InputLeftAddon>
         <Input

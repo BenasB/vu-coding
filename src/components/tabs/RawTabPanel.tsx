@@ -10,6 +10,11 @@ const RawTabPanel: React.FC = () => {
     input: '',
   });
 
+  const [mPrime, setMPrime] = useState<ValidatedInputValue<BinaryString>>({
+    status: 'pending',
+    input: '',
+  });
+
   return (
     <VStack spacing={4}>
       <BinaryStringInput
@@ -17,7 +22,12 @@ const RawTabPanel: React.FC = () => {
         onChange={newValue => setM(newValue)}
         title="m"
       />
-      <BaseTabPanel m={m} />
+      <BaseTabPanel
+        m={m}
+        mPrime={mPrime}
+        setMPrime={setMPrime}
+        displayM={false}
+      />
     </VStack>
   );
 };
