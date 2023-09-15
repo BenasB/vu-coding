@@ -44,3 +44,14 @@ export const binaryStringToText: (input: BinaryString) => string = input => {
 
   return stringChars.map(x => String.fromCharCode(parseInt(x, 2))).join('');
 };
+
+export const arrayBufferToBinaryString: (
+  input: ArrayBuffer,
+  byteLength: number,
+) => BinaryString = (input, byteLength) =>
+  stringToBinaryString(
+    new Uint8Array(input).reduce(
+      (str, byte) => str + byte.toString(2).padStart(byteLength, '0'),
+      '',
+    ),
+  );

@@ -1,4 +1,5 @@
 import {
+  arrayBufferToBinaryString,
   binaryStringToString,
   binaryStringToText,
   stringToBinaryString,
@@ -113,5 +114,51 @@ describe('binaryStringToText', () => {
       '1',
     ];
     expect(binaryStringToText(aInBinary)).toBe('a');
+  });
+});
+
+describe('arrayBufferToBinaryString', () => {
+  it('converts empty', () => {
+    expect(arrayBufferToBinaryString(new ArrayBuffer(0), 1)).toEqual([]);
+  });
+  it('converts single', () => {
+    expect(arrayBufferToBinaryString(new Uint8Array([0]), 1)).toEqual(['0']);
+    expect(arrayBufferToBinaryString(new Uint8Array([1]), 1)).toEqual(['1']);
+    expect(arrayBufferToBinaryString(new Uint8Array([2]), 2)).toEqual([
+      '1',
+      '0',
+    ]);
+    expect(arrayBufferToBinaryString(new Uint8Array([255]), 8)).toEqual([
+      '1',
+      '1',
+      '1',
+      '1',
+      '1',
+      '1',
+      '1',
+      '1',
+    ]);
+  });
+  it('converts multiple', () => {
+    expect(
+      arrayBufferToBinaryString(new Uint8Array([0, 1, 0, 1, 0, 0]), 1),
+    ).toEqual(['0', '1', '0', '1', '0', '0']);
+    expect(arrayBufferToBinaryString(new Uint8Array([2, 3]), 4)).toEqual([
+      '0',
+      '0',
+      '1',
+      '0',
+      '0',
+      '0',
+      '1',
+      '1',
+    ]);
+  });
+  it('handles different byte sizes', () => {
+    expect(arrayBufferToBinaryString(new Uint8Array([0]), 1)).toHaveLength(1);
+    expect(arrayBufferToBinaryString(new Uint8Array([1]), 3)).toHaveLength(3);
+    expect(arrayBufferToBinaryString(new Uint8Array([127, 0]), 8)).toHaveLength(
+      16,
+    );
   });
 });

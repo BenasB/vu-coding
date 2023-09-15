@@ -5,9 +5,14 @@ import {
   InputLeftAddon,
   VStack,
 } from '@chakra-ui/react';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import BaseTabPanel from './BaseTabPanel';
 import { ValidatedInputValue, BinaryString } from '../../utils/types';
+import { readFileAsArrayBuffer } from '../../utils/file-utils';
+import {
+  arrayBufferToBinaryString,
+  binaryStringToString,
+} from '../../utils/type-utils';
 
 const ImageTabPanel: React.FC = () => {
   const [imageInput, setImageInput] = useState<File | undefined>(undefined);
@@ -16,18 +21,44 @@ const ImageTabPanel: React.FC = () => {
     setImageInput(file ?? undefined);
   };
 
-  const [mPrime, setMPrime] = useState<ValidatedInputValue<BinaryString>>({
+  const [m, setM] = useState<ValidatedInputValue<BinaryString>>({
     status: 'pending',
     input: '',
   });
 
-  const tempM = useMemo<ValidatedInputValue<BinaryString>>(
-    () => ({
-      status: 'pending',
-      input: '',
-    }),
-    [],
-  );
+  useEffect(() => {
+    const startImageLoad = async () => {
+      if (imageInput === undefined) return;
+      setM({
+        status: 'pending',
+        input: '',
+      });
+      console.log('sbefore await');
+      const arrayBuffer = await readFileAsArrayBuffer(imageInput);
+      console.log('after await', arrayBuffer);
+      if (!ignore) {
+        console.log('before to binarystring');
+        const binaryString = arrayBufferToBinaryString(arrayBuffer, 8);
+        console.log('setting result success');
+        setM({
+          status: 'success',
+          input: binaryStringToString(binaryString),
+          validValue: binaryString,
+        });
+      }
+    };
+
+    let ignore = false;
+    startImageLoad();
+    return () => {
+      ignore = true;
+    };
+  }, [imageInput]);
+
+  const [mPrime, setMPrime] = useState<ValidatedInputValue<BinaryString>>({
+    status: 'pending',
+    input: '',
+  });
 
   return (
     <VStack spacing={4}>
@@ -47,7 +78,7 @@ const ImageTabPanel: React.FC = () => {
           />
         </InputGroup>
       </FormControl>
-      <BaseTabPanel m={tempM} mPrime={mPrime} setMPrime={setMPrime} />
+      <BaseTabPanel m={m} mPrime={mPrime} setMPrime={setMPrime} />
     </VStack>
   );
 };
