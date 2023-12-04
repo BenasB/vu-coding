@@ -39,6 +39,16 @@ export const arrayBufferToBinaryString: (
     ),
   );
 
+export const binaryStringToArrayBuffer: (
+  input: BinaryString,
+  byteLength: number,
+) => ArrayBuffer = (input, byteLength) => {
+  const stringBytes = input.match(new RegExp(`.{${byteLength}}`, 'g')) ?? [];
+  const numBytes = stringBytes.map(s => Number.parseInt(s, 2));
+
+  return Uint8Array.from(numBytes);
+};
+
 export const isBinaryString = (str: string): str is BinaryString =>
   str.length === 0 || (str.match(/\b[01]+\b/) ?? []).length > 0;
 

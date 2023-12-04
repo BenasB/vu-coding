@@ -6,12 +6,16 @@ import {
   InputLeftAddon,
   VStack,
 } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import BaseTabPanel from './BaseTabPanel';
 import { ValidatedInputValue, BinaryString } from '../../utils/types';
 import { readFileAsArrayBuffer } from '../../utils/file-utils';
-import { arrayBufferToBinaryString } from '../../utils/type-utils';
+import {
+  arrayBufferToBinaryString,
+  binaryStringToArrayBuffer,
+} from '../../utils/type-utils';
 import { ImgComparisonSlider } from '@img-comparison-slider/react';
+import { decode as bmpDecode } from 'bmp-js';
 
 const ImageTabPanel: React.FC = () => {
   const [imageInput, setImageInput] = useState<File | undefined>(undefined);
@@ -25,7 +29,9 @@ const ImageTabPanel: React.FC = () => {
     input: '',
   });
 
-  const [beforeImage, setBeforeImage] = useState<string | undefined>(undefined);
+  const [beforeImage, setBeforeImage] = useState<
+    { data: Buffer; header: Buffer } | undefined
+  >(undefined);
 
   useEffect(() => {
     const startImageLoad = async () => {
@@ -36,9 +42,20 @@ const ImageTabPanel: React.FC = () => {
         input: '',
       });
       const arrayBuffer = await readFileAsArrayBuffer(imageInput);
-      setBeforeImage(Buffer.from(arrayBuffer).toString('base64'));
       if (!ignore) {
-        const binaryString = arrayBufferToBinaryString(arrayBuffer, 8);
+        const fullBuffer = Buffer.from(arrayBuffer);
+        const bmpFile = bmpDecode(fullBuffer);
+        const bmpHeader = fullBuffer.subarray(0, bmpFile.offset);
+        const bmpData = fullBuffer.subarray(bmpFile.offset);
+        setBeforeImage({
+          header: bmpHeader,
+          data: bmpData,
+        });
+        console.log(
+          Buffer.concat([bmpHeader, bmpData]).toString('base64') ===
+            fullBuffer.toString('base64'),
+        );
+        const binaryString = arrayBufferToBinaryString(bmpData, 8);
         setM({
           status: 'success',
           input: binaryString,
@@ -59,6 +76,46 @@ const ImageTabPanel: React.FC = () => {
     input: '',
   });
 
+  const afterImage = useMemo<ValidatedInputValue<string>>(() => {
+    if (mPrime.status !== 'success' || beforeImage === undefined)
+      return {
+        status: 'pending',
+        input: '',
+      };
+    try {
+      const base64Buffer = Buffer.concat([
+        beforeImage.header,
+        Buffer.from(binaryStringToArrayBuffer(mPrime.validValue, 8)),
+      ]).toString('base64');
+
+      console.log(
+        'is it ',
+        Buffer.concat([beforeImage.header, beforeImage.data]).toString(
+          'base64',
+        ) === base64Buffer,
+      );
+      return {
+        status: 'success',
+        input: base64Buffer,
+        validValue: base64Buffer,
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        return {
+          status: 'fail',
+          input: '',
+          message: err.message,
+        };
+      }
+
+      return {
+        status: 'fail',
+        input: '',
+        message: 'Ran into a problem while converting m prime to image',
+      };
+    }
+  }, [mPrime, beforeImage]);
+
   return (
     <VStack spacing={4}>
       <FormControl>
@@ -77,20 +134,24 @@ const ImageTabPanel: React.FC = () => {
           />
         </InputGroup>
       </FormControl>
-      {beforeImage && (
+      <BaseTabPanel m={m} mPrime={mPrime} setMPrime={setMPrime} />
+      {beforeImage && afterImage.status === 'success' && (
         <ImgComparisonSlider>
-          <img
+          <Image
             slot="first"
-            src="https://img-comparison-slider.sneas.io/demo/images/before.webp"
+            src={`data:image/*;base64,${Buffer.concat([
+              beforeImage.header,
+              beforeImage.data,
+            ]).toString('base64')}`}
+            width={'100%'}
           />
           <Image
             slot="second"
-            src={`data:image/*;base64,${beforeImage}`}
+            src={`data:image/*;base64,${afterImage.validValue}`}
             width={'100%'}
           />
         </ImgComparisonSlider>
       )}
-      <BaseTabPanel m={m} mPrime={mPrime} setMPrime={setMPrime} />
     </VStack>
   );
 };

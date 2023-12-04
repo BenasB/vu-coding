@@ -1,5 +1,6 @@
 import {
   arrayBufferToBinaryString,
+  binaryStringToArrayBuffer,
   binaryStringToText,
   createBinaryString,
   textToBinaryString,
@@ -85,5 +86,54 @@ describe('arrayBufferToBinaryString', () => {
     expect(arrayBufferToBinaryString(new Uint8Array([127, 0]), 8)).toHaveLength(
       16,
     );
+  });
+});
+
+describe('binaryStringToArrayBuffer', () => {
+  it('converts empty', () => {
+    expect(binaryStringToArrayBuffer(createBinaryString(''), 1)).toEqual(
+      new Uint8Array(0),
+    );
+  });
+  it('converts single', () => {
+    expect(binaryStringToArrayBuffer(createBinaryString('0'), 1)).toEqual(
+      new Uint8Array([0]),
+    );
+    expect(binaryStringToArrayBuffer(createBinaryString('1'), 1)).toEqual(
+      new Uint8Array([1]),
+    );
+    expect(binaryStringToArrayBuffer(createBinaryString('10'), 2)).toEqual(
+      new Uint8Array([2]),
+    );
+    expect(
+      binaryStringToArrayBuffer(createBinaryString('11111111'), 8),
+    ).toEqual(new Uint8Array([255]));
+  });
+  it('converts multiple', () => {
+    expect(binaryStringToArrayBuffer(createBinaryString('010100'), 1)).toEqual(
+      new Uint8Array([0, 1, 0, 1, 0, 0]),
+    );
+    expect(
+      binaryStringToArrayBuffer(createBinaryString('00100011'), 4),
+    ).toEqual(new Uint8Array([2, 3]));
+  });
+  it('converts multiple', () => {
+    expect(binaryStringToArrayBuffer(createBinaryString('010100'), 1)).toEqual(
+      new Uint8Array([0, 1, 0, 1, 0, 0]),
+    );
+    expect(
+      binaryStringToArrayBuffer(createBinaryString('00100011'), 4),
+    ).toEqual(new Uint8Array([2, 3]));
+  });
+  it('handles different byte sizes', () => {
+    expect(binaryStringToArrayBuffer(createBinaryString('0'), 1)).toHaveLength(
+      1,
+    );
+    expect(
+      binaryStringToArrayBuffer(createBinaryString('111'), 3),
+    ).toHaveLength(1);
+    expect(
+      binaryStringToArrayBuffer(createBinaryString('1111111111111111'), 8),
+    ).toHaveLength(2);
   });
 });
