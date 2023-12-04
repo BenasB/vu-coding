@@ -51,10 +51,6 @@ const ImageTabPanel: React.FC = () => {
           header: bmpHeader,
           data: bmpData,
         });
-        console.log(
-          Buffer.concat([bmpHeader, bmpData]).toString('base64') ===
-            fullBuffer.toString('base64'),
-        );
         const binaryString = arrayBufferToBinaryString(bmpData, 8);
         setM({
           status: 'success',
@@ -87,13 +83,6 @@ const ImageTabPanel: React.FC = () => {
         beforeImage.header,
         Buffer.from(binaryStringToArrayBuffer(mPrime.validValue, 8)),
       ]).toString('base64');
-
-      console.log(
-        'is it ',
-        Buffer.concat([beforeImage.header, beforeImage.data]).toString(
-          'base64',
-        ) === base64Buffer,
-      );
       return {
         status: 'success',
         input: base64Buffer,
