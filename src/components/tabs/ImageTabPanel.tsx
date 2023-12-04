@@ -1,5 +1,6 @@
 import {
   FormControl,
+  Image,
   Input,
   InputGroup,
   InputLeftAddon,
@@ -9,10 +10,8 @@ import React, { useEffect, useState } from 'react';
 import BaseTabPanel from './BaseTabPanel';
 import { ValidatedInputValue, BinaryString } from '../../utils/types';
 import { readFileAsArrayBuffer } from '../../utils/file-utils';
-import {
-  arrayBufferToBinaryString,
-  binaryStringToString,
-} from '../../utils/type-utils';
+import { arrayBufferToBinaryString } from '../../utils/type-utils';
+import { ImgComparisonSlider } from '@img-comparison-slider/react';
 
 const ImageTabPanel: React.FC = () => {
   const [imageInput, setImageInput] = useState<File | undefined>(undefined);
@@ -26,30 +25,30 @@ const ImageTabPanel: React.FC = () => {
     input: '',
   });
 
+  const [beforeImage, setBeforeImage] = useState<string | undefined>(undefined);
+
   useEffect(() => {
     const startImageLoad = async () => {
       if (imageInput === undefined) return;
+      setBeforeImage(undefined);
       setM({
         status: 'pending',
         input: '',
       });
-      console.log('sbefore await');
       const arrayBuffer = await readFileAsArrayBuffer(imageInput);
-      console.log('after await', arrayBuffer);
+      setBeforeImage(Buffer.from(arrayBuffer).toString('base64'));
       if (!ignore) {
-        console.log('before to binarystring');
         const binaryString = arrayBufferToBinaryString(arrayBuffer, 8);
-        console.log('setting result success');
         setM({
           status: 'success',
-          input: binaryStringToString(binaryString),
+          input: binaryString,
           validValue: binaryString,
         });
       }
     };
 
     let ignore = false;
-    startImageLoad();
+    startImageLoad().catch(err => console.log('Error in image load', err));
     return () => {
       ignore = true;
     };
@@ -78,6 +77,19 @@ const ImageTabPanel: React.FC = () => {
           />
         </InputGroup>
       </FormControl>
+      {beforeImage && (
+        <ImgComparisonSlider>
+          <img
+            slot="first"
+            src="https://img-comparison-slider.sneas.io/demo/images/before.webp"
+          />
+          <Image
+            slot="second"
+            src={`data:image/*;base64,${beforeImage}`}
+            width={'100%'}
+          />
+        </ImgComparisonSlider>
+      )}
       <BaseTabPanel m={m} mPrime={mPrime} setMPrime={setMPrime} />
     </VStack>
   );

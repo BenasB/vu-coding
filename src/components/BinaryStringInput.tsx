@@ -9,6 +9,7 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 import { BinaryString, ValidatedInputValue } from '../utils/types';
+import { isBinaryString, createBinaryString } from '../utils/type-utils';
 
 interface Props {
   value: ValidatedInputValue<BinaryString>;
@@ -25,17 +26,14 @@ const BinaryStringInput: React.FC<Props> = ({
   onChange,
   inputRightElementContent,
 }) => {
-  const regex = /^[01]+$/;
-  const validate = (value: string) => regex.test(value);
-
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (onChange) {
-      const valid = validate(e.target.value);
+      const valid = isBinaryString(e.target.value);
       if (valid)
         onChange({
           status: 'success',
           input: e.target.value,
-          validValue: [...e.target.value].map(x => (x === '0' ? '0' : '1')),
+          validValue: createBinaryString(e.target.value),
         });
       else
         onChange({

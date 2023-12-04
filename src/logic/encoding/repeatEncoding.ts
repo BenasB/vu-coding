@@ -1,14 +1,18 @@
+import { createBinaryString } from '../../utils/type-utils';
 import { BinaryString } from '../../utils/types';
 
 const repeatEncode: (input: BinaryString, n: number) => BinaryString = (
   input,
   n,
 ) =>
-  input.reduce<BinaryString>((accumulator, currentValue) => {
-    const bits: BinaryString = [...(Array(n) as undefined[])].map(
-      () => currentValue,
-    );
-    return accumulator.concat(bits);
-  }, []);
+  createBinaryString(
+    input
+      .split('')
+      .reduce<string>(
+        (accumulator, currentValue) =>
+          accumulator.concat(currentValue.repeat(n)),
+        '',
+      ),
+  );
 
 export default repeatEncode;

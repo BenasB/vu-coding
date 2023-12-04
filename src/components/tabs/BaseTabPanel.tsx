@@ -8,13 +8,13 @@ import {
   FormControl,
 } from '@chakra-ui/react';
 import React, { useEffect, useMemo, useState } from 'react';
-import { binaryStringToString } from '../../utils/type-utils';
 import BinaryStringInput from '../BinaryStringInput';
 import { BinaryString, ValidatedInputValue } from '../../utils/types';
 import passThroughChannel from '../../logic/channel';
 import repeatDecode from '../../logic/decoding/repeatDecoding';
 import repeatEncode from '../../logic/encoding/repeatEncoding';
 import { useGetParameterInput } from '../../state/ParameterInputContext';
+import { createBinaryString } from '../../utils/type-utils';
 
 interface Props {
   m: ValidatedInputValue<BinaryString>;
@@ -32,7 +32,9 @@ const BaseTabPanel: React.FC<Props> = ({
   displayM = true,
 }) => {
   const { pe, n } = useGetParameterInput();
-  const [initialY, setInitialY] = useState<BinaryString>([]);
+  const [initialY, setInitialY] = useState<BinaryString>(
+    createBinaryString(''),
+  );
   const [y, setY] = useState<ValidatedInputValue<BinaryString>>({
     status: 'pending',
     input: '',
@@ -42,7 +44,7 @@ const BaseTabPanel: React.FC<Props> = ({
     () =>
       m.status === 'success' && n.status === 'success'
         ? repeatEncode(m.validValue, n.validValue)
-        : [],
+        : createBinaryString(''),
     [m, n],
   );
 
@@ -52,16 +54,14 @@ const BaseTabPanel: React.FC<Props> = ({
     const newY = passThroughChannel(c, pe.validValue);
     setY({
       status: 'success',
-      input: binaryStringToString(newY),
+      input: newY,
       validValue: newY,
     });
     setInitialY(newY);
   }, [c, pe]);
 
   const isYChanged = useMemo(
-    () =>
-      y.status === 'success' &&
-      binaryStringToString(initialY) !== binaryStringToString(y.validValue),
+    () => y.status === 'success' && initialY !== y.validValue,
     [y, initialY],
   );
 
@@ -78,7 +78,7 @@ const BaseTabPanel: React.FC<Props> = ({
       const decodedValue = repeatDecode(y.validValue, n.validValue);
       setMPrime({
         status: 'success',
-        input: binaryStringToString(decodedValue),
+        input: decodedValue,
         validValue: decodedValue,
       });
     } catch (err) {
@@ -113,11 +113,7 @@ const BaseTabPanel: React.FC<Props> = ({
       )}
       <InputGroup>
         <InputLeftAddon>c</InputLeftAddon>
-        <Input
-          isReadOnly
-          value={binaryStringToString(c)}
-          isDisabled={m.status !== 'success'}
-        />
+        <Input isReadOnly value={c} isDisabled={m.status !== 'success'} />
       </InputGroup>
       <BinaryStringInput
         value={y}
@@ -136,7 +132,7 @@ const BaseTabPanel: React.FC<Props> = ({
                   setY({
                     status: 'success',
                     validValue: initialY,
-                    input: binaryStringToString(initialY),
+                    input: initialY,
                   })
                 }
               >

@@ -8,11 +8,7 @@ import {
 } from '@chakra-ui/react';
 import React, { useMemo, useState } from 'react';
 import BaseTabPanel from './BaseTabPanel';
-import {
-  binaryStringToString,
-  binaryStringToText,
-  textToBinaryString,
-} from '../../utils/type-utils';
+import { binaryStringToText, textToBinaryString } from '../../utils/type-utils';
 import { BinaryString, ValidatedInputValue } from '../../utils/types';
 
 const RawTabPanel: React.FC = () => {
@@ -26,7 +22,7 @@ const RawTabPanel: React.FC = () => {
       const binaryString = textToBinaryString(textInput);
       return {
         status: 'success',
-        input: binaryStringToString(binaryString),
+        input: binaryString,
         validValue: binaryString,
       };
     } catch (err) {

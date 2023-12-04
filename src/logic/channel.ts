@@ -1,3 +1,4 @@
+import { createBinaryString } from '../utils/type-utils';
 import { BinaryString } from '../utils/types';
 
 /**
@@ -7,10 +8,15 @@ const passThroughChannel: (
   input: BinaryString,
   changeProbability: number,
 ) => BinaryString = (input, changeProbability) =>
-  input.map(bit => {
-    const shouldChange = Math.random() < changeProbability;
-    if (shouldChange) return bit === '0' ? '1' : '0';
-    return bit;
-  });
+  createBinaryString(
+    input
+      .split('')
+      .map(bit => {
+        const shouldChange = Math.random() < changeProbability;
+        if (shouldChange) return bit === '0' ? '1' : '0';
+        return bit;
+      })
+      .join(''),
+  );
 
 export default passThroughChannel;

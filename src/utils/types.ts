@@ -20,4 +20,6 @@ interface ValidationFail {
   message: string;
 }
 
-export type BinaryString = ('0' | '1')[];
+export type BinaryString = string & {
+  readonly BinaryString: unique symbol;
+};
