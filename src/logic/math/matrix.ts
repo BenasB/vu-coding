@@ -27,3 +27,32 @@ export const kroneckerProduct: (a: Matrix, b: Matrix) => Matrix = (a, b) => {
 
   return result;
 };
+
+export const multiply: (a: Matrix, b: Matrix) => Matrix = (a, b) => {
+  const rowsA = a.length;
+  const colsA = a[0].length;
+  const rowsB = b.length;
+  const colsB = b[0].length;
+
+  if (colsA !== rowsB) {
+    throw Error(
+      `Matrices cannot be multiplied. Incorrect dimensions. ${colsA} and ${rowsB}`,
+    );
+  }
+
+  // Create 2D array and fill it with 0
+  const result: Matrix = Array.from(
+    { length: rowsA },
+    () => Array(colsB).fill(0) as number[],
+  );
+
+  for (let i = 0; i < rowsA; i++) {
+    for (let j = 0; j < colsB; j++) {
+      for (let k = 0; k < colsA; k++) {
+        result[i][j] += a[i][k] * b[k][j];
+      }
+    }
+  }
+
+  return result;
+};
