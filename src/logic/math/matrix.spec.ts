@@ -140,4 +140,15 @@ describe('multiply', () => {
       [454, 70],
     ]);
   });
+  it('Matrix with negative numbers', () => {
+    expect(
+      multiply(
+        [
+          [1, 3, -5],
+          [8, -11, 3],
+        ],
+        [[0], [2], [-4]],
+      ),
+    ).toEqual<Matrix>([[26], [-34]]);
+  });
 });

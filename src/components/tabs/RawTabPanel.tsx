@@ -11,13 +11,13 @@ import {
 import React, { useEffect, useMemo, useState } from 'react';
 import BinaryStringInput from '../BinaryStringInput';
 import { ValidatedInputValue, BinaryString } from '../../utils/types';
-import repeatEncode from '../../logic/encoding/repeatEncoding';
 import { useGetParameterInput } from '../../state/ParameterInputContext';
 import passThroughChannel from '../../logic/channel';
 import repeatDecode from '../../logic/decoding/repeatDecoding';
+import { reedMullerEncode } from '../../logic/encoding/rmEncoding';
 
 const RawTabPanel: React.FC = () => {
-  const { pe, n } = useGetParameterInput();
+  const { pe, n, generationMatrix } = useGetParameterInput();
 
   const [m, setM] = useState<ValidatedInputValue<BinaryString>>({
     status: 'pending',
@@ -25,17 +25,32 @@ const RawTabPanel: React.FC = () => {
   });
 
   const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (m.status !== 'success' || n.status !== 'success')
+    if (m.status !== 'success' || generationMatrix === undefined)
       return { status: 'pending', input: '' };
 
-    const encodedValue = repeatEncode(m.validValue, n.validValue);
+    try {
+      const encodedValue = reedMullerEncode(m.validValue, generationMatrix);
+      return {
+        status: 'success',
+        input: encodedValue,
+        validValue: encodedValue,
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        return {
+          status: 'fail',
+          input: '',
+          message: err.message,
+        };
+      }
 
-    return {
-      status: 'success',
-      input: encodedValue,
-      validValue: encodedValue,
-    };
-  }, [m, n]);
+      return {
+        status: 'fail',
+        input: '',
+        message: 'Ran into a problem while decoding',
+      };
+    }
+  }, [m, generationMatrix]);
 
   const [initialY, setInitialY] = useState<BinaryString | undefined>(undefined);
 
@@ -109,10 +124,19 @@ const RawTabPanel: React.FC = () => {
         onChange={newValue => setM(newValue)}
         title="m"
       />
-      <InputGroup>
-        <InputLeftAddon>c</InputLeftAddon>
-        <Input isReadOnly value={c.input} isDisabled={c.status !== 'success'} />
-      </InputGroup>
+      <FormControl isInvalid={c.status === 'fail'}>
+        <InputGroup>
+          <InputLeftAddon>c</InputLeftAddon>
+          <Input
+            isReadOnly
+            value={c.input}
+            isDisabled={c.status !== 'success'}
+          />
+        </InputGroup>
+        {c.status === 'fail' && (
+          <FormErrorMessage>{c.message}</FormErrorMessage>
+        )}
+      </FormControl>
       <BinaryStringInput
         value={y}
         onChange={newValue => setY(newValue)}

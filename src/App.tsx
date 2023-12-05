@@ -9,7 +9,7 @@ import {
   Tabs,
   VStack,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ValidatedInputValue } from './utils/types';
 import ParameterInputGroup from './components/ParameterInputGroup';
 import RawTabPanel from './components/tabs/RawTabPanel';
@@ -18,14 +18,25 @@ import ParameterInputContext, {
 } from './state/ParameterInputContext';
 import TextTabPanel from './components/tabs/TextTabPanel';
 import ImageTabPanel from './components/tabs/ImageTabPanel';
+import { Matrix } from './logic/math/matrix';
+import { reedMullerGenerationMatrix } from './logic/encoding/rmEncoding';
 
 const App = () => {
   const [pe, setPe] = useState<ValidatedInputValue<number>>(
     parameterInputContextPropsInitial.pe,
   );
 
+  // TODO: rename n to m, or better yet move this to code specific parameters and allow the user to choose between multiple codes
   const [n, setN] = useState<ValidatedInputValue<number>>(
     parameterInputContextPropsInitial.n,
+  );
+
+  const generationMatrix = useMemo<Matrix | undefined>(
+    () =>
+      n.status === 'success'
+        ? reedMullerGenerationMatrix(1, n.validValue)
+        : undefined,
+    [n],
   );
 
   const [tabIndex, setTabIndex] = useState<number>(0);
@@ -45,7 +56,7 @@ const App = () => {
             <Tab>Image</Tab>
           </TabList>
 
-          <ParameterInputContext.Provider value={{ pe, n }}>
+          <ParameterInputContext.Provider value={{ pe, n, generationMatrix }}>
             <TabPanels>
               <TabPanel px={0} key={0}>
                 {tabIndex === 0 ? <RawTabPanel /> : null}

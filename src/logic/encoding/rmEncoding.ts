@@ -1,4 +1,9 @@
-import { Matrix } from '../math/matrix';
+import {
+  binaryStringToMatrix,
+  createBinaryString,
+} from '../../utils/type-utils';
+import { BinaryString } from '../../utils/types';
+import { Matrix, multiply } from '../math/matrix';
 
 export const reedMullerGenerationMatrix: (r: number, m: number) => Matrix = (
   r,
@@ -24,4 +29,15 @@ export const reedMullerGenerationMatrix: (r: number, m: number) => Matrix = (
   );
 
   return [...top, ...bottom];
+};
+
+export const reedMullerEncode: (
+  input: BinaryString,
+  generationMatrix: Matrix,
+) => BinaryString = (input, generationMatrix) => {
+  return createBinaryString(
+    multiply(binaryStringToMatrix(input), generationMatrix)[0]
+      .map(x => x % 2) // Over F2
+      .reduce<string>((acc, cur) => acc + cur.toString(), ''),
+  );
 };

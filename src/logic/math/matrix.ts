@@ -36,7 +36,7 @@ export const multiply: (a: Matrix, b: Matrix) => Matrix = (a, b) => {
 
   if (colsA !== rowsB) {
     throw Error(
-      `Matrices cannot be multiplied. Incorrect dimensions. ${colsA} and ${rowsB}`,
+      `Matrices cannot be multiplied. Incorrect dimensions ${colsA} and ${rowsB}.`,
     );
   }
 

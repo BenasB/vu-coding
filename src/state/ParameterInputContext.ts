@@ -1,9 +1,11 @@
 import { createContext, useContext } from 'react';
 import { ValidatedInputValue } from '../utils/types';
+import { Matrix } from '../logic/math/matrix';
 
 interface ParameterInputContextProps {
   pe: ValidatedInputValue<number>;
   n: ValidatedInputValue<number>;
+  generationMatrix: Matrix | undefined;
 }
 
 export const parameterInputContextPropsInitial: ParameterInputContextProps = {
@@ -17,6 +19,7 @@ export const parameterInputContextPropsInitial: ParameterInputContextProps = {
     input: '3',
     validValue: 3,
   },
+  generationMatrix: undefined,
 };
 
 const ParameterInputContext = createContext<ParameterInputContextProps>(
