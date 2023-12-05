@@ -110,6 +110,36 @@ const RawTabPanel: React.FC = () => {
     }
   }, [y, n]);
 
+  const outputText = useMemo<ValidatedInputValue<string>>(() => {
+    if (mPrime.status !== 'success')
+      return {
+        status: 'pending',
+        input: '',
+      };
+    try {
+      const text = binaryStringToText(mPrime.validValue);
+      return {
+        status: 'success',
+        input: text,
+        validValue: text,
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        return {
+          status: 'fail',
+          input: '',
+          message: err.message,
+        };
+      }
+
+      return {
+        status: 'fail',
+        input: '',
+        message: 'Ran into a problem while converting m prime to text',
+      };
+    }
+  }, [mPrime]);
+
   const uncodedOutputText = useMemo<ValidatedInputValue<string>>(() => {
     if (pe.status !== 'success' || m.status !== 'success') {
       return {
@@ -143,36 +173,6 @@ const RawTabPanel: React.FC = () => {
       };
     }
   }, [pe, m]);
-
-  const outputText = useMemo<ValidatedInputValue<string>>(() => {
-    if (mPrime.status !== 'success')
-      return {
-        status: 'pending',
-        input: '',
-      };
-    try {
-      const text = binaryStringToText(mPrime.validValue);
-      return {
-        status: 'success',
-        input: text,
-        validValue: text,
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        return {
-          status: 'fail',
-          input: '',
-          message: err.message,
-        };
-      }
-
-      return {
-        status: 'fail',
-        input: '',
-        message: 'Ran into a problem while converting m prime to text',
-      };
-    }
-  }, [mPrime]);
 
   return (
     <VStack spacing={4}>
