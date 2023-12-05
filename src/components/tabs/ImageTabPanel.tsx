@@ -7,7 +7,6 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import React, { useEffect, useMemo, useState } from 'react';
-import BaseTabPanel from './BaseTabPanel';
 import { ValidatedInputValue, BinaryString } from '../../utils/types';
 import { readFileAsArrayBuffer } from '../../utils/file-utils';
 import {
@@ -123,7 +122,6 @@ const ImageTabPanel: React.FC = () => {
           />
         </InputGroup>
       </FormControl>
-      <BaseTabPanel m={m} mPrime={mPrime} setMPrime={setMPrime} />
       {beforeImage && afterImage.status === 'success' && (
         <ImgComparisonSlider>
           <Image

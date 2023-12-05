@@ -28,6 +28,14 @@ const BinaryStringInput: React.FC<Props> = ({
 }) => {
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (onChange) {
+      if (e.target.value.length === 0) {
+        onChange({
+          status: 'pending',
+          input: '',
+        });
+        return;
+      }
+
       const valid = isBinaryString(e.target.value);
       if (valid)
         onChange({

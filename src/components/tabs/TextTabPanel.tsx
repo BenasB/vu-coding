@@ -1,19 +1,26 @@
 import {
   FormControl,
   FormErrorMessage,
-  Input,
   InputGroup,
   InputLeftAddon,
+  Textarea,
   VStack,
 } from '@chakra-ui/react';
 import React, { useMemo, useState } from 'react';
-import BaseTabPanel from './BaseTabPanel';
 import { binaryStringToText, textToBinaryString } from '../../utils/type-utils';
 import { BinaryString, ValidatedInputValue } from '../../utils/types';
+import passThroughChannel from '../../logic/channel';
+import { useGetParameterInput } from '../../state/ParameterInputContext';
+import repeatEncode from '../../logic/encoding/repeatEncoding';
+import repeatDecode from '../../logic/decoding/repeatDecoding';
 
 const RawTabPanel: React.FC = () => {
+  const { pe, n } = useGetParameterInput();
+
   const [textInput, setTextInput] = useState<string>('');
-  const handleOnTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOnTextInputChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
     setTextInput(e.target.value);
   };
 
@@ -42,10 +49,100 @@ const RawTabPanel: React.FC = () => {
     }
   }, [textInput]);
 
-  const [mPrime, setMPrime] = useState<ValidatedInputValue<BinaryString>>({
-    status: 'pending',
-    input: '',
-  });
+  const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
+    if (m.status !== 'success' || n.status !== 'success')
+      return { status: 'pending', input: '' };
+
+    const encodedValue = repeatEncode(m.validValue, n.validValue);
+
+    return {
+      status: 'success',
+      input: encodedValue,
+      validValue: encodedValue,
+    };
+  }, [m, n]);
+
+  const y = useMemo<ValidatedInputValue<BinaryString>>(() => {
+    if (pe.status !== 'success' || c.status !== 'success') {
+      return {
+        status: 'pending',
+        input: '',
+      };
+    }
+
+    const newY = passThroughChannel(c.validValue, pe.validValue);
+    return {
+      status: 'success',
+      input: newY,
+      validValue: newY,
+    };
+  }, [pe, c]);
+
+  const mPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
+    if (y.status !== 'success' || n.status !== 'success') {
+      return {
+        status: 'pending',
+        input: '',
+      };
+    }
+
+    try {
+      const decodedValue = repeatDecode(y.validValue, n.validValue);
+      return {
+        status: 'success',
+        input: decodedValue,
+        validValue: decodedValue,
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        return {
+          status: 'fail',
+          input: '',
+          message: err.message,
+        };
+      }
+
+      return {
+        status: 'fail',
+        input: '',
+        message: 'Ran into a problem while decoding',
+      };
+    }
+  }, [y, n]);
+
+  const uncodedOutputText = useMemo<ValidatedInputValue<string>>(() => {
+    if (pe.status !== 'success' || m.status !== 'success') {
+      return {
+        status: 'pending',
+        input: '',
+      };
+    }
+
+    const mPrimeUncoded = passThroughChannel(m.validValue, pe.validValue);
+
+    try {
+      const text = binaryStringToText(mPrimeUncoded);
+      return {
+        status: 'success',
+        input: text,
+        validValue: text,
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        return {
+          status: 'fail',
+          input: '',
+          message: err.message,
+        };
+      }
+
+      return {
+        status: 'fail',
+        input: '',
+        message: 'Ran into a problem while converting m prime to text',
+      };
+    }
+  }, [pe, m]);
 
   const outputText = useMemo<ValidatedInputValue<string>>(() => {
     if (mPrime.status !== 'success')
@@ -80,16 +177,24 @@ const RawTabPanel: React.FC = () => {
   return (
     <VStack spacing={4}>
       <FormControl>
-        <InputGroup>
-          <InputLeftAddon>Input</InputLeftAddon>
-          <Input value={textInput} onChange={handleOnTextInputChange} />
+        <InputGroup alignItems={'stretch'}>
+          <InputLeftAddon height={'auto'}>Input</InputLeftAddon>
+          <Textarea value={textInput} onChange={handleOnTextInputChange} />
         </InputGroup>
       </FormControl>
-      <BaseTabPanel m={m} mPrime={mPrime} setMPrime={setMPrime} />
+      <FormControl isInvalid={uncodedOutputText.status === 'fail'}>
+        <InputGroup alignItems={'stretch'}>
+          <InputLeftAddon height={'auto'}>Output (uncoded)</InputLeftAddon>
+          <Textarea value={uncodedOutputText.input} isReadOnly />
+        </InputGroup>
+        {uncodedOutputText.status === 'fail' && (
+          <FormErrorMessage>{uncodedOutputText.message}</FormErrorMessage>
+        )}
+      </FormControl>
       <FormControl isInvalid={outputText.status === 'fail'}>
-        <InputGroup>
-          <InputLeftAddon>Output</InputLeftAddon>
-          <Input value={outputText.input} isReadOnly />
+        <InputGroup alignItems={'stretch'}>
+          <InputLeftAddon height={'auto'}>Output</InputLeftAddon>
+          <Textarea value={outputText.input} isReadOnly />
         </InputGroup>
         {outputText.status === 'fail' && (
           <FormErrorMessage>{outputText.message}</FormErrorMessage>
