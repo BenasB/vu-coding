@@ -30,7 +30,7 @@ const RawTabPanel: React.FC = () => {
     setTextInput(e.target.value);
   };
 
-  const m = useMemo<ValidatedInputValue<BinaryString>>(() => {
+  const v = useMemo<ValidatedInputValue<BinaryString>>(() => {
     try {
       const binaryString = textToBinaryString(textInput);
       return {
@@ -57,16 +57,16 @@ const RawTabPanel: React.FC = () => {
 
   const padding = useMemo<number | undefined>(
     () =>
-      m.status === 'success' && n.status === 'success'
-        ? (n.validValue + 1 - (m.validValue.length % (n.validValue + 1))) %
+      v.status === 'success' && n.status === 'success'
+        ? (n.validValue + 1 - (v.validValue.length % (n.validValue + 1))) %
           (n.validValue + 1)
         : undefined,
-    [m, n],
+    [v, n],
   );
 
   const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
-      m.status !== 'success' ||
+      v.status !== 'success' ||
       n.status !== 'success' ||
       generationMatrix === undefined ||
       padding === undefined
@@ -76,7 +76,7 @@ const RawTabPanel: React.FC = () => {
     try {
       const encodedValue = reedMullerEncode(
         createBinaryString(
-          m.validValue.padEnd(m.validValue.length + padding, '0'),
+          v.validValue.padEnd(v.validValue.length + padding, '0'),
         ),
         n.validValue,
         generationMatrix,
@@ -101,7 +101,7 @@ const RawTabPanel: React.FC = () => {
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [m, n, generationMatrix, padding]);
+  }, [v, n, generationMatrix, padding]);
 
   const y = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (pe.status !== 'success' || c.status !== 'success') {
@@ -119,7 +119,7 @@ const RawTabPanel: React.FC = () => {
     };
   }, [pe, c]);
 
-  const mPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
+  const vPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
       y.status !== 'success' ||
       n.status !== 'success' ||
@@ -160,7 +160,7 @@ const RawTabPanel: React.FC = () => {
   }, [y, n, controlMatrices]);
 
   const outputText = useMemo<ValidatedInputValue<string>>(() => {
-    if (mPrime.status !== 'success' || padding === undefined)
+    if (vPrime.status !== 'success' || padding === undefined)
       return {
         status: 'pending',
         input: '',
@@ -168,7 +168,7 @@ const RawTabPanel: React.FC = () => {
     try {
       const text = binaryStringToText(
         createBinaryString(
-          mPrime.validValue.substring(0, mPrime.validValue.length - padding),
+          vPrime.validValue.substring(0, vPrime.validValue.length - padding),
         ),
       );
       return {
@@ -191,20 +191,20 @@ const RawTabPanel: React.FC = () => {
         message: 'Ran into a problem while converting m prime to text',
       };
     }
-  }, [mPrime, padding]);
+  }, [vPrime, padding]);
 
   const uncodedOutputText = useMemo<ValidatedInputValue<string>>(() => {
-    if (pe.status !== 'success' || m.status !== 'success') {
+    if (pe.status !== 'success' || v.status !== 'success') {
       return {
         status: 'pending',
         input: '',
       };
     }
 
-    const mPrimeUncoded = passThroughChannel(m.validValue, pe.validValue);
+    const vPrimeUncoded = passThroughChannel(v.validValue, pe.validValue);
 
     try {
-      const text = binaryStringToText(mPrimeUncoded);
+      const text = binaryStringToText(vPrimeUncoded);
       return {
         status: 'success',
         input: text,
@@ -225,7 +225,7 @@ const RawTabPanel: React.FC = () => {
         message: 'Ran into a problem while converting m prime to text',
       };
     }
-  }, [pe, m]);
+  }, [pe, v]);
 
   return (
     <VStack spacing={4}>
@@ -235,10 +235,10 @@ const RawTabPanel: React.FC = () => {
           <Textarea value={textInput} onChange={handleOnTextInputChange} />
         </InputGroup>
       </FormControl>
-      {m.status === 'fail' && (
+      {v.status === 'fail' && (
         <Alert status="error">
           <AlertIcon />
-          {m.message}
+          {v.message}
         </Alert>
       )}
       {c.status === 'fail' && (
@@ -253,10 +253,10 @@ const RawTabPanel: React.FC = () => {
           {y.message}
         </Alert>
       )}
-      {mPrime.status === 'fail' && (
+      {vPrime.status === 'fail' && (
         <Alert status="error">
           <AlertIcon />
-          {mPrime.message}
+          {vPrime.message}
         </Alert>
       )}
       <FormControl isInvalid={uncodedOutputText.status === 'fail'}>

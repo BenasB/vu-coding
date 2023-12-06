@@ -34,7 +34,7 @@ const ImageTabPanel: React.FC = () => {
     setImageInput(file ?? undefined);
   };
 
-  const [m, setM] = useState<ValidatedInputValue<BinaryString>>({
+  const [v, setV] = useState<ValidatedInputValue<BinaryString>>({
     status: 'pending',
     input: '',
   });
@@ -47,7 +47,7 @@ const ImageTabPanel: React.FC = () => {
     const startImageLoad = async () => {
       if (imageInput === undefined) return;
       setBeforeImage(undefined);
-      setM({
+      setV({
         status: 'pending',
         input: '',
       });
@@ -62,7 +62,7 @@ const ImageTabPanel: React.FC = () => {
           data: bmpData,
         });
         const binaryString = arrayBufferToBinaryString(bmpData, BYTE_SIZE);
-        setM({
+        setV({
           status: 'success',
           input: binaryString,
           validValue: binaryString,
@@ -79,16 +79,16 @@ const ImageTabPanel: React.FC = () => {
 
   const padding = useMemo<number | undefined>(
     () =>
-      m.status === 'success' && n.status === 'success'
-        ? (n.validValue + 1 - (m.validValue.length % (n.validValue + 1))) %
+      v.status === 'success' && n.status === 'success'
+        ? (n.validValue + 1 - (v.validValue.length % (n.validValue + 1))) %
           (n.validValue + 1)
         : undefined,
-    [m, n],
+    [v, n],
   );
 
   const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
-      m.status !== 'success' ||
+      v.status !== 'success' ||
       n.status !== 'success' ||
       generationMatrix === undefined ||
       padding === undefined
@@ -99,7 +99,7 @@ const ImageTabPanel: React.FC = () => {
       const timeBefore = new Date();
       const encodedValue = reedMullerEncode(
         createBinaryString(
-          m.validValue.padEnd(m.validValue.length + padding, '0'),
+          v.validValue.padEnd(v.validValue.length + padding, '0'),
         ),
         n.validValue,
         generationMatrix,
@@ -127,7 +127,7 @@ const ImageTabPanel: React.FC = () => {
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [m, n, generationMatrix, padding]);
+  }, [v, n, generationMatrix, padding]);
 
   const y = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (pe.status !== 'success' || c.status !== 'success') {
@@ -145,7 +145,7 @@ const ImageTabPanel: React.FC = () => {
     };
   }, [pe, c]);
 
-  const mPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
+  const vPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
       y.status !== 'success' ||
       n.status !== 'success' ||
@@ -191,7 +191,7 @@ const ImageTabPanel: React.FC = () => {
 
   const afterImage = useMemo<ValidatedInputValue<string>>(() => {
     if (
-      mPrime.status !== 'success' ||
+      vPrime.status !== 'success' ||
       beforeImage === undefined ||
       padding === undefined
     )
@@ -206,9 +206,9 @@ const ImageTabPanel: React.FC = () => {
         Buffer.from(
           binaryStringToArrayBuffer(
             createBinaryString(
-              mPrime.validValue.substring(
+              vPrime.validValue.substring(
                 0,
-                mPrime.validValue.length - padding,
+                vPrime.validValue.length - padding,
               ),
             ),
             BYTE_SIZE,
@@ -236,12 +236,12 @@ const ImageTabPanel: React.FC = () => {
         message: 'Ran into a problem while converting m prime to image',
       };
     }
-  }, [mPrime, beforeImage, padding]);
+  }, [vPrime, beforeImage, padding]);
 
   const uncodedAfterImage = useMemo<ValidatedInputValue<string>>(() => {
     if (
       pe.status !== 'success' ||
-      m.status !== 'success' ||
+      v.status !== 'success' ||
       beforeImage === undefined
     ) {
       return {
@@ -250,12 +250,12 @@ const ImageTabPanel: React.FC = () => {
       };
     }
 
-    const mPrimeUncoded = passThroughChannel(m.validValue, pe.validValue);
+    const vPrimeUncoded = passThroughChannel(v.validValue, pe.validValue);
 
     try {
       const base64Buffer = Buffer.concat([
         beforeImage.header,
-        Buffer.from(binaryStringToArrayBuffer(mPrimeUncoded, BYTE_SIZE)),
+        Buffer.from(binaryStringToArrayBuffer(vPrimeUncoded, BYTE_SIZE)),
       ]).toString('base64');
       return {
         status: 'success',
@@ -277,7 +277,7 @@ const ImageTabPanel: React.FC = () => {
         message: 'Ran into a problem while converting m prime to text',
       };
     }
-  }, [pe, m, beforeImage]);
+  }, [pe, v, beforeImage]);
 
   return (
     <VStack spacing={4}>
@@ -311,10 +311,10 @@ const ImageTabPanel: React.FC = () => {
           </InputGroup>
         </FormControl>
       )}
-      {m.status === 'fail' && (
+      {v.status === 'fail' && (
         <Alert status="error">
           <AlertIcon />
-          {m.message}
+          {v.message}
         </Alert>
       )}
       {c.status === 'fail' && (
@@ -329,10 +329,10 @@ const ImageTabPanel: React.FC = () => {
           {y.message}
         </Alert>
       )}
-      {mPrime.status === 'fail' && (
+      {vPrime.status === 'fail' && (
         <Alert status="error">
           <AlertIcon />
-          {mPrime.message}
+          {vPrime.message}
         </Alert>
       )}
       {beforeImage && (

@@ -20,14 +20,14 @@ import { reedMullerDecode } from '../../logic/decoding/rmDecoding';
 const RawTabPanel: React.FC = () => {
   const { pe, n, generationMatrix, controlMatrices } = useGetParameterInput();
 
-  const [m, setM] = useState<ValidatedInputValue<BinaryString>>({
+  const [v, setV] = useState<ValidatedInputValue<BinaryString>>({
     status: 'pending',
     input: '',
   });
 
   const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
-      m.status !== 'success' ||
+      v.status !== 'success' ||
       n.status !== 'success' ||
       generationMatrix === undefined
     )
@@ -37,7 +37,7 @@ const RawTabPanel: React.FC = () => {
       const encodedValue = reedMullerEncode(
         createBinaryString(
           //m.validValue.padEnd(m.validValue.length + padding, '0'),
-          m.validValue,
+          v.validValue,
         ),
         n.validValue,
         generationMatrix,
@@ -62,7 +62,7 @@ const RawTabPanel: React.FC = () => {
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [m, n, generationMatrix]);
+  }, [v, n, generationMatrix]);
 
   const [initialY, setInitialY] = useState<BinaryString | undefined>(undefined);
 
@@ -97,7 +97,7 @@ const RawTabPanel: React.FC = () => {
     [y, initialY],
   );
 
-  const mPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
+  const vPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
       y.status !== 'success' ||
       n.status !== 'success' ||
@@ -140,9 +140,9 @@ const RawTabPanel: React.FC = () => {
   return (
     <VStack spacing={4}>
       <BinaryStringInput
-        value={m}
-        onChange={newValue => setM(newValue)}
-        title="m"
+        value={v}
+        onChange={newValue => setV(newValue)}
+        title="v"
       />
       <FormControl isInvalid={c.status === 'fail'}>
         <InputGroup>
@@ -162,7 +162,7 @@ const RawTabPanel: React.FC = () => {
         onChange={newValue => setY(newValue)}
         title="y"
         inputProps={{
-          isDisabled: m.status !== 'success',
+          isDisabled: v.status !== 'success',
         }}
         inputRightElementContent={
           isYChanged && initialY ? (
@@ -184,21 +184,21 @@ const RawTabPanel: React.FC = () => {
           ) : undefined
         }
       />
-      <FormControl isInvalid={mPrime.status === 'fail'}>
+      <FormControl isInvalid={vPrime.status === 'fail'}>
         <InputGroup>
-          <InputLeftAddon>m′</InputLeftAddon>
+          <InputLeftAddon>v′</InputLeftAddon>
           <Input
             isReadOnly
             isDisabled={
-              mPrime.status !== 'success' ||
-              m.status !== 'success' ||
+              vPrime.status !== 'success' ||
+              v.status !== 'success' ||
               y.status !== 'success'
             }
-            value={mPrime.input}
+            value={vPrime.input}
           />
         </InputGroup>
-        {mPrime.status === 'fail' && (
-          <FormErrorMessage>{mPrime.message}</FormErrorMessage>
+        {vPrime.status === 'fail' && (
+          <FormErrorMessage>{vPrime.message}</FormErrorMessage>
         )}
       </FormControl>
     </VStack>
