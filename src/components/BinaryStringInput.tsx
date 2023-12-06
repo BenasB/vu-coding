@@ -55,7 +55,12 @@ const BinaryStringInput: React.FC<Props> = ({
   return (
     <FormControl isInvalid={value.status === 'fail'}>
       <InputGroup>
-        {title && <InputLeftAddon>{title}</InputLeftAddon>}
+        {title &&
+          (typeof title === 'string' ? (
+            <InputLeftAddon>{title}</InputLeftAddon>
+          ) : (
+            <>{title}</>
+          ))}
         <Input value={value.input} onChange={handleOnChange} {...inputProps} />
         {inputRightElementContent && (
           <InputRightElement width="4.5rem">

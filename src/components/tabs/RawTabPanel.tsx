@@ -5,6 +5,7 @@ import {
   Input,
   InputGroup,
   InputLeftAddon,
+  InputRightAddon,
   Tooltip,
   VStack,
 } from '@chakra-ui/react';
@@ -35,10 +36,7 @@ const RawTabPanel: React.FC = () => {
 
     try {
       const encodedValue = reedMullerEncode(
-        createBinaryString(
-          //m.validValue.padEnd(m.validValue.length + padding, '0'),
-          v.validValue,
-        ),
+        createBinaryString(v.validValue),
         n.validValue,
         generationMatrix,
       );
@@ -97,6 +95,21 @@ const RawTabPanel: React.FC = () => {
     [y, initialY],
   );
 
+  const e = useMemo<string>(() => {
+    if (c.status !== 'success' || y.status !== 'success') return '';
+
+    return c.validValue
+      .split('')
+      .map((x, i) => (x === y.validValue[i] ? '0' : '1'))
+      .join('');
+  }, [c, y]);
+
+  const eCount = useMemo<number>(
+    () =>
+      e?.split('').reduce<number>((sum, cur) => (sum += parseInt(cur)), 0) ?? 0,
+    [e],
+  );
+
   const vPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
       y.status !== 'success' ||
@@ -142,11 +155,17 @@ const RawTabPanel: React.FC = () => {
       <BinaryStringInput
         value={v}
         onChange={newValue => setV(newValue)}
-        title="v"
+        title={
+          <Tooltip label="Input binary string">
+            <InputLeftAddon>v</InputLeftAddon>
+          </Tooltip>
+        }
       />
       <FormControl isInvalid={c.status === 'fail'}>
         <InputGroup>
-          <InputLeftAddon>c</InputLeftAddon>
+          <Tooltip label="Encoded value">
+            <InputLeftAddon>c</InputLeftAddon>
+          </Tooltip>
           <Input
             isReadOnly
             value={c.input}
@@ -160,9 +179,13 @@ const RawTabPanel: React.FC = () => {
       <BinaryStringInput
         value={y}
         onChange={newValue => setY(newValue)}
-        title="y"
+        title={
+          <Tooltip label="Encoded value passed through the channel">
+            <InputLeftAddon>y</InputLeftAddon>
+          </Tooltip>
+        }
         inputProps={{
-          isDisabled: v.status !== 'success',
+          isDisabled: v.status !== 'success' || c.status !== 'success',
         }}
         inputRightElementContent={
           isYChanged && initialY ? (
@@ -184,9 +207,26 @@ const RawTabPanel: React.FC = () => {
           ) : undefined
         }
       />
+      <FormControl>
+        <InputGroup>
+          <Tooltip label="Error vector">
+            <InputLeftAddon>e</InputLeftAddon>
+          </Tooltip>
+          <Input
+            isReadOnly
+            value={e}
+            isDisabled={e === undefined || eCount === undefined}
+          />
+          <Tooltip label="Error count">
+            <InputRightAddon>{eCount}</InputRightAddon>
+          </Tooltip>
+        </InputGroup>
+      </FormControl>
       <FormControl isInvalid={vPrime.status === 'fail'}>
         <InputGroup>
-          <InputLeftAddon>v′</InputLeftAddon>
+          <Tooltip label="Decoded value from the channel">
+            <InputLeftAddon>v′</InputLeftAddon>
+          </Tooltip>
           <Input
             isReadOnly
             isDisabled={
