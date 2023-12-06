@@ -5,6 +5,7 @@ import {
   NumberInput,
   NumberInputField,
   FormErrorMessage,
+  Tooltip,
 } from '@chakra-ui/react';
 import React from 'react';
 import { ValidatedInputValue } from '../utils/types';
@@ -55,9 +56,11 @@ const ParameterInputGroup: React.FC<Props> = ({ pe, setPe, m, setN }) => {
     <>
       <FormControl isInvalid={pe.status === 'fail'}>
         <InputGroup>
-          <InputLeftAddon>
-            p<sub>e</sub>
-          </InputLeftAddon>
+          <Tooltip label="Channel error probability">
+            <InputLeftAddon>
+              p<sub>e</sub>
+            </InputLeftAddon>
+          </Tooltip>
           <NumberInput
             step={0.1}
             max={1}
