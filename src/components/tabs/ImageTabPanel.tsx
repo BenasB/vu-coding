@@ -79,9 +79,9 @@ const ImageTabPanel: React.FC = () => {
   }, [imageInput]);
 
   const padding = useBinaryPaddingCount(v);
-  const c = useC(v, padding);
+  const c = useC(v, padding, true);
   const y = useY(c);
-  const vPrime = useVPrime(y);
+  const vPrime = useVPrime(y, true);
 
   const afterImage = useMemo<ValidatedInputValue<string>>(() => {
     if (

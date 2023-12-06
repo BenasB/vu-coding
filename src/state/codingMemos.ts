@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { reedMullerEncode } from '../logic/encoding/rmEncoding';
 import { createBinaryString } from '../utils/type-utils';
 import { ValidatedInputValue, BinaryString } from '../utils/types';
 import { useGetParameterInput } from './ParameterInputContext';
 import passThroughChannel from '../logic/channel';
 import { reedMullerDecode } from '../logic/decoding/rmDecoding';
+import { UseToastOptions, useToast } from '@chakra-ui/react';
 
 export const useBinaryPaddingCount: (
   v: ValidatedInputValue<BinaryString>,
@@ -24,8 +25,19 @@ export const useBinaryPaddingCount: (
 export const useC: (
   v: ValidatedInputValue<BinaryString>,
   padding: number | undefined,
-) => ValidatedInputValue<BinaryString> = (v, padding) => {
+  showToast?: boolean,
+) => ValidatedInputValue<BinaryString> = (v, padding, showToast = false) => {
   const { m, generationMatrix } = useGetParameterInput();
+  const [toastMessage, setToastMessage] = useState<UseToastOptions | undefined>(
+    undefined,
+  );
+  const toast = useToast();
+
+  useEffect(() => {
+    if (toastMessage) {
+      toast(toastMessage);
+    }
+  }, [toastMessage, toast]);
 
   return useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
@@ -45,9 +57,16 @@ export const useC: (
         m.validValue,
         generationMatrix,
       );
-      console.log(
-        `Encoding took: ${new Date().getTime() - timeBefore.getTime()} ms`,
-      );
+      const elapsedTime = new Date().getTime() - timeBefore.getTime();
+      console.log(`Encoding took: ${elapsedTime} ms`);
+      if (showToast) {
+        setToastMessage({
+          description: `Encoding took: ${elapsedTime} ms`,
+          status: 'success',
+          duration: 5000,
+          position: 'bottom-right',
+        });
+      }
 
       return {
         status: 'success',
@@ -69,7 +88,7 @@ export const useC: (
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [v, m, generationMatrix, padding]);
+  }, [v, m, generationMatrix, padding, setToastMessage, showToast]);
 };
 
 export const useY: (
@@ -96,8 +115,19 @@ export const useY: (
 
 export const useVPrime: (
   y: ValidatedInputValue<BinaryString>,
-) => ValidatedInputValue<BinaryString> = y => {
+  showToast?: boolean,
+) => ValidatedInputValue<BinaryString> = (y, showToast = false) => {
   const { controlMatrices, m } = useGetParameterInput();
+  const [toastMessage, setToastMessage] = useState<UseToastOptions | undefined>(
+    undefined,
+  );
+  const toast = useToast();
+
+  useEffect(() => {
+    if (toastMessage) {
+      toast(toastMessage);
+    }
+  }, [toastMessage, toast]);
 
   return useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
@@ -118,9 +148,16 @@ export const useVPrime: (
         controlMatrices,
         m.validValue,
       );
-      console.log(
-        `Decoding took: ${new Date().getTime() - timeBefore.getTime()} ms`,
-      );
+      const elapsedTime = new Date().getTime() - timeBefore.getTime();
+      console.log(`Decoding took: ${elapsedTime} ms`);
+      if (showToast) {
+        setToastMessage({
+          description: `Decoding took: ${elapsedTime} ms`,
+          status: 'success',
+          duration: 5000,
+          position: 'bottom-right',
+        });
+      }
 
       return {
         status: 'success',
@@ -142,7 +179,7 @@ export const useVPrime: (
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [y, m, controlMatrices]);
+  }, [y, m, controlMatrices, setToastMessage, showToast]);
 };
 
 export const useVPrimeUncoded: <T extends { toString: () => string }>(

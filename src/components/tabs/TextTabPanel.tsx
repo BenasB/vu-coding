@@ -32,6 +32,12 @@ const RawTabPanel: React.FC = () => {
   };
 
   const v = useMemo<ValidatedInputValue<BinaryString>>(() => {
+    if (textInput.length === 0)
+      return {
+        status: 'pending',
+        input: '',
+      };
+
     try {
       const binaryString = textToBinaryString(textInput);
       return {

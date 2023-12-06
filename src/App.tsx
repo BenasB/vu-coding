@@ -54,8 +54,11 @@ const App = () => {
 
   return (
     <Container maxW="container.md">
-      <Heading py={50}>
+      <Heading as="h1" py={50}>
         <Center>Coding theory</Center>
+      </Heading>
+      <Heading as="h2" size="sm" py={5}>
+        Reed–Muller code RM(1, m)
       </Heading>
       <VStack align={'stretch'} spacing={4}>
         <ParameterInputGroup pe={pe} setPe={setPe} m={m} setN={setM} />
@@ -71,13 +74,13 @@ const App = () => {
             value={{ pe, m, generationMatrix, controlMatrices }}
           >
             <TabPanels>
-              <TabPanel px={0} key={0}>
+              <TabPanel px={0}>
                 {tabIndex === 0 ? <RawTabPanel /> : null}
               </TabPanel>
-              <TabPanel px={0} key={1}>
+              <TabPanel px={0}>
                 {tabIndex === 1 ? <TextTabPanel /> : null}
               </TabPanel>
-              <TabPanel px={0} key={2}>
+              <TabPanel px={0}>
                 {tabIndex === 2 ? <ImageTabPanel /> : null}
               </TabPanel>
             </TabPanels>
