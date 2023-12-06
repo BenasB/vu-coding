@@ -36,6 +36,11 @@ export const reedMullerDecode: (
       `Input length ${input.length} is not divisible by ${vectorLength}`,
     );
 
+  if (controlMatrices.length !== m)
+    throw new Error(
+      `Input length ${controlMatrices.length} of is not equal to ${m}`,
+    );
+
   const inputArray = binaryStringToVector(input);
 
   // Chunk vectors into pieces of vectorLength

@@ -20,13 +20,14 @@ import TextTabPanel from './components/tabs/TextTabPanel';
 import ImageTabPanel from './components/tabs/ImageTabPanel';
 import { Matrix } from './logic/math/matrix';
 import { reedMullerGenerationMatrix } from './logic/encoding/rmEncoding';
+import { reedMullerControlMatrix } from './logic/decoding/rmDecoding';
 
 const App = () => {
   const [pe, setPe] = useState<ValidatedInputValue<number>>(
     parameterInputContextPropsInitial.pe,
   );
 
-  // TODO: rename n to m, or better yet move this to code specific parameters and allow the user to choose between multiple codes
+  // TODO: rename n to m, or better yet create a CodeProvider
   const [n, setN] = useState<ValidatedInputValue<number>>(
     parameterInputContextPropsInitial.n,
   );
@@ -35,6 +36,16 @@ const App = () => {
     () =>
       n.status === 'success'
         ? reedMullerGenerationMatrix(1, n.validValue)
+        : undefined,
+    [n],
+  );
+
+  const controlMatrices = useMemo<Matrix[] | undefined>(
+    () =>
+      n.status === 'success'
+        ? [...(Array(n.validValue) as undefined[])].map((_, i) =>
+            reedMullerControlMatrix(i + 1, n.validValue),
+          )
         : undefined,
     [n],
   );
@@ -56,7 +67,9 @@ const App = () => {
             <Tab>Image</Tab>
           </TabList>
 
-          <ParameterInputContext.Provider value={{ pe, n, generationMatrix }}>
+          <ParameterInputContext.Provider
+            value={{ pe, n, generationMatrix, controlMatrices }}
+          >
             <TabPanels>
               <TabPanel px={0} key={0}>
                 {tabIndex === 0 ? <RawTabPanel /> : null}

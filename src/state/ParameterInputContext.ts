@@ -6,6 +6,7 @@ interface ParameterInputContextProps {
   pe: ValidatedInputValue<number>;
   n: ValidatedInputValue<number>;
   generationMatrix: Matrix | undefined;
+  controlMatrices: Matrix[] | undefined;
 }
 
 export const parameterInputContextPropsInitial: ParameterInputContextProps = {
@@ -20,6 +21,7 @@ export const parameterInputContextPropsInitial: ParameterInputContextProps = {
     validValue: 3,
   },
   generationMatrix: undefined,
+  controlMatrices: undefined,
 };
 
 const ParameterInputContext = createContext<ParameterInputContextProps>(

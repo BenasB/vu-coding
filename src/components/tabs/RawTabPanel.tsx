@@ -14,13 +14,13 @@ import BinaryStringInput from '../BinaryStringInput';
 import { ValidatedInputValue, BinaryString } from '../../utils/types';
 import { useGetParameterInput } from '../../state/ParameterInputContext';
 import passThroughChannel from '../../logic/channel';
-import repeatDecode from '../../logic/decoding/repeatDecoding';
 import { reedMullerEncode } from '../../logic/encoding/rmEncoding';
 import { createBinaryString } from '../../utils/type-utils';
 import { WarningIcon } from '@chakra-ui/icons';
+import { reedMullerDecode } from '../../logic/decoding/rmDecoding';
 
 const RawTabPanel: React.FC = () => {
-  const { pe, n, generationMatrix } = useGetParameterInput();
+  const { pe, n, generationMatrix, controlMatrices } = useGetParameterInput();
 
   const [m, setM] = useState<ValidatedInputValue<BinaryString>>({
     status: 'pending',
@@ -109,7 +109,11 @@ const RawTabPanel: React.FC = () => {
   );
 
   const mPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (y.status !== 'success' || n.status !== 'success') {
+    if (
+      y.status !== 'success' ||
+      n.status !== 'success' ||
+      controlMatrices === undefined
+    ) {
       return {
         status: 'pending',
         input: '',
@@ -117,7 +121,11 @@ const RawTabPanel: React.FC = () => {
     }
 
     try {
-      const decodedValue = repeatDecode(y.validValue, n.validValue);
+      const decodedValue = reedMullerDecode(
+        y.validValue,
+        controlMatrices,
+        n.validValue,
+      );
       return {
         status: 'success',
         input: decodedValue,
@@ -138,7 +146,7 @@ const RawTabPanel: React.FC = () => {
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [y, n]);
+  }, [y, n, controlMatrices]);
 
   return (
     <VStack spacing={4}>
