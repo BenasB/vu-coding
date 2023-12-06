@@ -16,7 +16,7 @@ export const textToBinaryString: (input: string) => BinaryString = (
 export const binaryStringToText: (input: BinaryString) => string = input => {
   if (input.length % UTF16_CHAR_SIZE !== 0)
     throw new Error(
-      `Binary string of lentgth '${input.length}' could not be split into chunks of 16`,
+      `Binary string of length '${input.length}' could not be split into chunks of 16`,
     );
 
   const stringChars = [

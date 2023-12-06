@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertIcon,
   FormControl,
   FormErrorMessage,
   InputGroup,
@@ -7,15 +9,19 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import React, { useMemo, useState } from 'react';
-import { binaryStringToText, textToBinaryString } from '../../utils/type-utils';
+import {
+  binaryStringToText,
+  createBinaryString,
+  textToBinaryString,
+} from '../../utils/type-utils';
 import { BinaryString, ValidatedInputValue } from '../../utils/types';
 import passThroughChannel from '../../logic/channel';
 import { useGetParameterInput } from '../../state/ParameterInputContext';
-import repeatEncode from '../../logic/encoding/repeatEncoding';
-import repeatDecode from '../../logic/decoding/repeatDecoding';
+import { reedMullerEncode } from '../../logic/encoding/rmEncoding';
+import { reedMullerDecode } from '../../logic/decoding/rmDecoding';
 
 const RawTabPanel: React.FC = () => {
-  const { pe, n } = useGetParameterInput();
+  const { pe, n, generationMatrix, controlMatrices } = useGetParameterInput();
 
   const [textInput, setTextInput] = useState<string>('');
   const handleOnTextInputChange = (
@@ -49,18 +55,53 @@ const RawTabPanel: React.FC = () => {
     }
   }, [textInput]);
 
+  const padding = useMemo<number | undefined>(
+    () =>
+      m.status === 'success' && n.status === 'success'
+        ? (n.validValue + 1 - (m.validValue.length % (n.validValue + 1))) %
+          (n.validValue + 1)
+        : undefined,
+    [m, n],
+  );
+
   const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (m.status !== 'success' || n.status !== 'success')
+    if (
+      m.status !== 'success' ||
+      n.status !== 'success' ||
+      generationMatrix === undefined ||
+      padding === undefined
+    )
       return { status: 'pending', input: '' };
 
-    const encodedValue = repeatEncode(m.validValue, n.validValue);
+    try {
+      const encodedValue = reedMullerEncode(
+        createBinaryString(
+          m.validValue.padEnd(m.validValue.length + padding, '0'),
+        ),
+        n.validValue,
+        generationMatrix,
+      );
+      return {
+        status: 'success',
+        input: encodedValue,
+        validValue: encodedValue,
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        return {
+          status: 'fail',
+          input: '',
+          message: err.message,
+        };
+      }
 
-    return {
-      status: 'success',
-      input: encodedValue,
-      validValue: encodedValue,
-    };
-  }, [m, n]);
+      return {
+        status: 'fail',
+        input: '',
+        message: 'Ran into a problem while decoding',
+      };
+    }
+  }, [m, n, generationMatrix, padding]);
 
   const y = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (pe.status !== 'success' || c.status !== 'success') {
@@ -79,7 +120,11 @@ const RawTabPanel: React.FC = () => {
   }, [pe, c]);
 
   const mPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (y.status !== 'success' || n.status !== 'success') {
+    if (
+      y.status !== 'success' ||
+      n.status !== 'success' ||
+      controlMatrices === undefined
+    ) {
       return {
         status: 'pending',
         input: '',
@@ -87,7 +132,11 @@ const RawTabPanel: React.FC = () => {
     }
 
     try {
-      const decodedValue = repeatDecode(y.validValue, n.validValue);
+      const decodedValue = reedMullerDecode(
+        y.validValue,
+        controlMatrices,
+        n.validValue,
+      );
       return {
         status: 'success',
         input: decodedValue,
@@ -108,16 +157,20 @@ const RawTabPanel: React.FC = () => {
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [y, n]);
+  }, [y, n, controlMatrices]);
 
   const outputText = useMemo<ValidatedInputValue<string>>(() => {
-    if (mPrime.status !== 'success')
+    if (mPrime.status !== 'success' || padding === undefined)
       return {
         status: 'pending',
         input: '',
       };
     try {
-      const text = binaryStringToText(mPrime.validValue);
+      const text = binaryStringToText(
+        createBinaryString(
+          mPrime.validValue.substring(0, mPrime.validValue.length - padding),
+        ),
+      );
       return {
         status: 'success',
         input: text,
@@ -138,7 +191,7 @@ const RawTabPanel: React.FC = () => {
         message: 'Ran into a problem while converting m prime to text',
       };
     }
-  }, [mPrime]);
+  }, [mPrime, padding]);
 
   const uncodedOutputText = useMemo<ValidatedInputValue<string>>(() => {
     if (pe.status !== 'success' || m.status !== 'success') {
@@ -182,6 +235,30 @@ const RawTabPanel: React.FC = () => {
           <Textarea value={textInput} onChange={handleOnTextInputChange} />
         </InputGroup>
       </FormControl>
+      {m.status === 'fail' && (
+        <Alert status="error">
+          <AlertIcon />
+          {m.message}
+        </Alert>
+      )}
+      {c.status === 'fail' && (
+        <Alert status="error">
+          <AlertIcon />
+          {c.message}
+        </Alert>
+      )}
+      {y.status === 'fail' && (
+        <Alert status="error">
+          <AlertIcon />
+          {y.message}
+        </Alert>
+      )}
+      {mPrime.status === 'fail' && (
+        <Alert status="error">
+          <AlertIcon />
+          {mPrime.message}
+        </Alert>
+      )}
       <FormControl isInvalid={uncodedOutputText.status === 'fail'}>
         <InputGroup alignItems={'stretch'}>
           <InputLeftAddon height={'auto'}>Output (uncoded)</InputLeftAddon>
