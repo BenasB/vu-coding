@@ -85,7 +85,22 @@ describe('reedMullerEncode', () => {
     ].map(createBinaryString);
 
     inputs.forEach((x, i) =>
-      expect(reedMullerEncode(x, generationMatrix)).toEqual(expectedOutputs[i]),
+      expect(reedMullerEncode(x, 3, generationMatrix)).toEqual(
+        expectedOutputs[i],
+      ),
     );
+  });
+  it('encodes several pieces and puts it back together', () => {
+    // RM(1, 3)
+    const generationMatrix: Matrix = [
+      [1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 1, 0, 1, 0, 1, 0, 1],
+      [0, 0, 1, 1, 0, 0, 1, 1],
+      [0, 0, 0, 0, 1, 1, 1, 1],
+    ];
+
+    expect(
+      reedMullerEncode(createBinaryString('000111011001'), 3, generationMatrix),
+    ).toEqual('000011111010010111110000');
   });
 });

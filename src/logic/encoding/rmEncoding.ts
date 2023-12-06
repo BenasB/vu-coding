@@ -33,11 +33,25 @@ export const reedMullerGenerationMatrix: (r: number, m: number) => Matrix = (
 
 export const reedMullerEncode: (
   input: BinaryString,
+  m: number,
   generationMatrix: Matrix,
-) => BinaryString = (input, generationMatrix) => {
-  return createBinaryString(
-    multiply(binaryStringToMatrix(input), generationMatrix)[0]
-      .map(x => x % 2) // Over F2
-      .reduce<string>((acc, cur) => acc + cur.toString(), ''),
-  );
+) => BinaryString = (input, m, generationMatrix) => {
+  const inputArray = binaryStringToMatrix(input)[0];
+  const vectorLength = m + 1;
+  const vectors = [
+    ...(Array(Math.ceil(inputArray.length / vectorLength)) as undefined[]),
+  ]
+    .map((_, index) => index * vectorLength)
+    .map<number[]>(begin => inputArray.slice(begin, begin + vectorLength));
+
+  const encodedVectorString = vectors
+    .map(v => multiply([v], generationMatrix)[0])
+    .map(v => v.map(x => x % 2))
+    .reduce<string>(
+      (acc, cur) =>
+        acc + cur.reduce<string>((acc2, cur2) => acc2 + cur2.toString(), ''),
+      '',
+    );
+
+  return createBinaryString(encodedVectorString);
 };

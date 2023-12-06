@@ -5,6 +5,7 @@ import {
   Input,
   InputGroup,
   InputLeftAddon,
+  InputRightElement,
   Tooltip,
   VStack,
 } from '@chakra-ui/react';
@@ -15,6 +16,8 @@ import { useGetParameterInput } from '../../state/ParameterInputContext';
 import passThroughChannel from '../../logic/channel';
 import repeatDecode from '../../logic/decoding/repeatDecoding';
 import { reedMullerEncode } from '../../logic/encoding/rmEncoding';
+import { createBinaryString } from '../../utils/type-utils';
+import { WarningIcon } from '@chakra-ui/icons';
 
 const RawTabPanel: React.FC = () => {
   const { pe, n, generationMatrix } = useGetParameterInput();
@@ -24,12 +27,32 @@ const RawTabPanel: React.FC = () => {
     input: '',
   });
 
+  const padding = useMemo<number | undefined>(
+    () =>
+      m.status === 'success' && n.status === 'success'
+        ? (n.validValue + 1 - (m.validValue.length % (n.validValue + 1))) %
+          (n.validValue + 1)
+        : undefined,
+    [m, n],
+  );
+
   const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (m.status !== 'success' || generationMatrix === undefined)
+    if (
+      m.status !== 'success' ||
+      n.status !== 'success' ||
+      generationMatrix === undefined ||
+      padding === undefined
+    )
       return { status: 'pending', input: '' };
 
     try {
-      const encodedValue = reedMullerEncode(m.validValue, generationMatrix);
+      const encodedValue = reedMullerEncode(
+        createBinaryString(
+          m.validValue.padEnd(m.validValue.length + padding, '0'),
+        ),
+        n.validValue,
+        generationMatrix,
+      );
       return {
         status: 'success',
         input: encodedValue,
@@ -50,7 +73,7 @@ const RawTabPanel: React.FC = () => {
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [m, generationMatrix]);
+  }, [m, n, generationMatrix, padding]);
 
   const [initialY, setInitialY] = useState<BinaryString | undefined>(undefined);
 
@@ -132,6 +155,13 @@ const RawTabPanel: React.FC = () => {
             value={c.input}
             isDisabled={c.status !== 'success'}
           />
+          {padding && (
+            <InputRightElement>
+              <Tooltip label={`The input was padded with ${padding} zeroes`}>
+                <WarningIcon />
+              </Tooltip>
+            </InputRightElement>
+          )}
         </InputGroup>
         {c.status === 'fail' && (
           <FormErrorMessage>{c.message}</FormErrorMessage>
