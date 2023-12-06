@@ -1,4 +1,3 @@
-import { Matrix } from '../logic/math/matrix';
 import { BinaryString } from './types';
 
 export const UTF16_CHAR_SIZE = 16;
@@ -50,9 +49,8 @@ export const binaryStringToArrayBuffer: (
   return Uint8Array.from(numBytes);
 };
 
-export const binaryStringToMatrix: (input: BinaryString) => Matrix = input => [
-  input.split('').map(c => parseInt(c)),
-];
+export const binaryStringToVector: (input: BinaryString) => number[] = input =>
+  input.split('').map(c => parseInt(c));
 
 export const isBinaryString = (str: string): str is BinaryString =>
   str.length === 0 || (str.match(/\b[01]+\b/) ?? []).length > 0;

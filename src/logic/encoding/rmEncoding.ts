@@ -1,8 +1,9 @@
 import {
-  binaryStringToMatrix,
+  binaryStringToVector,
   createBinaryString,
 } from '../../utils/type-utils';
 import { BinaryString } from '../../utils/types';
+import { chunk } from '../math/array';
 import { Matrix, multiply } from '../math/matrix';
 
 export const reedMullerGenerationMatrix: (r: number, m: number) => Matrix = (
@@ -36,13 +37,16 @@ export const reedMullerEncode: (
   m: number,
   generationMatrix: Matrix,
 ) => BinaryString = (input, m, generationMatrix) => {
-  const inputArray = binaryStringToMatrix(input)[0];
   const vectorLength = m + 1;
-  const vectors = [
-    ...(Array(Math.ceil(inputArray.length / vectorLength)) as undefined[]),
-  ]
-    .map((_, index) => index * vectorLength)
-    .map<number[]>(begin => inputArray.slice(begin, begin + vectorLength));
+
+  if (input.length % vectorLength !== 0)
+    throw new Error(
+      `Input length ${input.length} is not divisible by ${vectorLength}`,
+    );
+
+  const inputArray = binaryStringToVector(input);
+
+  const vectors = chunk(inputArray, vectorLength);
 
   const encodedVectorString = vectors
     .map(v => multiply([v], generationMatrix)[0])

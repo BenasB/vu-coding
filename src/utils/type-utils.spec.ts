@@ -1,7 +1,7 @@
 import {
   arrayBufferToBinaryString,
   binaryStringToArrayBuffer,
-  binaryStringToMatrix,
+  binaryStringToVector,
   binaryStringToText,
   createBinaryString,
   textToBinaryString,
@@ -141,15 +141,15 @@ describe('binaryStringToArrayBuffer', () => {
 
 describe('binaryStringToMatrix', () => {
   it('converts empty', () => {
-    expect(binaryStringToMatrix(createBinaryString(''))).toEqual([[]]);
+    expect(binaryStringToVector(createBinaryString(''))).toEqual([]);
   });
   it('converts single', () => {
-    expect(binaryStringToMatrix(createBinaryString('0'))).toEqual([[0]]);
-    expect(binaryStringToMatrix(createBinaryString('1'))).toEqual([[1]]);
+    expect(binaryStringToVector(createBinaryString('0'))).toEqual([0]);
+    expect(binaryStringToVector(createBinaryString('1'))).toEqual([1]);
   });
   it('converts multiple', () => {
-    expect(binaryStringToMatrix(createBinaryString('01100001'))).toEqual([
-      [0, 1, 1, 0, 0, 0, 0, 1],
+    expect(binaryStringToVector(createBinaryString('01100001'))).toEqual([
+      0, 1, 1, 0, 0, 0, 0, 1,
     ]);
   });
 });
