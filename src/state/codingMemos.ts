@@ -9,15 +9,15 @@ import { reedMullerDecode } from '../logic/decoding/rmDecoding';
 export const useBinaryPaddingCount: (
   v: ValidatedInputValue<BinaryString>,
 ) => number | undefined = v => {
-  const { n } = useGetParameterInput();
+  const { m } = useGetParameterInput();
 
   return useMemo<number | undefined>(
     () =>
-      v.status === 'success' && n.status === 'success'
-        ? (n.validValue + 1 - (v.validValue.length % (n.validValue + 1))) %
-          (n.validValue + 1)
+      v.status === 'success' && m.status === 'success'
+        ? (m.validValue + 1 - (v.validValue.length % (m.validValue + 1))) %
+          (m.validValue + 1)
         : undefined,
-    [v, n],
+    [v, m],
   );
 };
 
@@ -25,25 +25,30 @@ export const useC: (
   v: ValidatedInputValue<BinaryString>,
   padding: number | undefined,
 ) => ValidatedInputValue<BinaryString> = (v, padding) => {
-  const { n, generationMatrix } = useGetParameterInput();
+  const { m, generationMatrix } = useGetParameterInput();
 
   return useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
       v.status !== 'success' ||
-      n.status !== 'success' ||
+      m.status !== 'success' ||
       generationMatrix === undefined ||
       padding === undefined
     )
       return { status: 'pending', input: '' };
 
     try {
+      const timeBefore = new Date();
       const encodedValue = reedMullerEncode(
         createBinaryString(
           v.validValue.padEnd(v.validValue.length + padding, '0'),
         ),
-        n.validValue,
+        m.validValue,
         generationMatrix,
       );
+      console.log(
+        `Encoding took: ${new Date().getTime() - timeBefore.getTime()} ms`,
+      );
+
       return {
         status: 'success',
         input: encodedValue,
@@ -64,7 +69,7 @@ export const useC: (
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [v, n, generationMatrix, padding]);
+  }, [v, m, generationMatrix, padding]);
 };
 
 export const useY: (
@@ -92,12 +97,12 @@ export const useY: (
 export const useVPrime: (
   y: ValidatedInputValue<BinaryString>,
 ) => ValidatedInputValue<BinaryString> = y => {
-  const { controlMatrices, n } = useGetParameterInput();
+  const { controlMatrices, m } = useGetParameterInput();
 
   return useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (
       y.status !== 'success' ||
-      n.status !== 'success' ||
+      m.status !== 'success' ||
       controlMatrices === undefined
     ) {
       return {
@@ -107,11 +112,16 @@ export const useVPrime: (
     }
 
     try {
+      const timeBefore = new Date();
       const decodedValue = reedMullerDecode(
         y.validValue,
         controlMatrices,
-        n.validValue,
+        m.validValue,
       );
+      console.log(
+        `Decoding took: ${new Date().getTime() - timeBefore.getTime()} ms`,
+      );
+
       return {
         status: 'success',
         input: decodedValue,
@@ -132,7 +142,7 @@ export const useVPrime: (
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [y, n, controlMatrices]);
+  }, [y, m, controlMatrices]);
 };
 
 export const useVPrimeUncoded: <T extends { toString: () => string }>(

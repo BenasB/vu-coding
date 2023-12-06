@@ -27,27 +27,27 @@ const App = () => {
     parameterInputContextPropsInitial.pe,
   );
 
-  // TODO: rename n to m, or better yet create a CodeProvider
-  const [n, setN] = useState<ValidatedInputValue<number>>(
-    parameterInputContextPropsInitial.n,
+  // TODO: Create a CodeProvider
+  const [m, setM] = useState<ValidatedInputValue<number>>(
+    parameterInputContextPropsInitial.m,
   );
 
   const generationMatrix = useMemo<Matrix | undefined>(
     () =>
-      n.status === 'success'
-        ? reedMullerGenerationMatrix(1, n.validValue)
+      m.status === 'success'
+        ? reedMullerGenerationMatrix(1, m.validValue)
         : undefined,
-    [n],
+    [m],
   );
 
   const controlMatrices = useMemo<Matrix[] | undefined>(
     () =>
-      n.status === 'success'
-        ? [...(Array(n.validValue) as undefined[])].map((_, i) =>
-            reedMullerControlMatrix(i + 1, n.validValue),
+      m.status === 'success'
+        ? [...(Array(m.validValue) as undefined[])].map((_, i) =>
+            reedMullerControlMatrix(i + 1, m.validValue),
           )
         : undefined,
-    [n],
+    [m],
   );
 
   const [tabIndex, setTabIndex] = useState<number>(0);
@@ -55,10 +55,10 @@ const App = () => {
   return (
     <Container maxW="container.md">
       <Heading py={50}>
-        <Center>Encoding</Center>
+        <Center>Coding theory</Center>
       </Heading>
       <VStack align={'stretch'} spacing={4}>
-        <ParameterInputGroup pe={pe} setPe={setPe} n={n} setN={setN} />
+        <ParameterInputGroup pe={pe} setPe={setPe} m={m} setN={setM} />
 
         <Tabs index={tabIndex} onChange={index => setTabIndex(index)}>
           <TabList>
@@ -68,7 +68,7 @@ const App = () => {
           </TabList>
 
           <ParameterInputContext.Provider
-            value={{ pe, n, generationMatrix, controlMatrices }}
+            value={{ pe, m, generationMatrix, controlMatrices }}
           >
             <TabPanels>
               <TabPanel px={0} key={0}>

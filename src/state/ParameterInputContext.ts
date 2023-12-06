@@ -4,7 +4,7 @@ import { Matrix } from '../logic/math/matrix';
 
 interface ParameterInputContextProps {
   pe: ValidatedInputValue<number>;
-  n: ValidatedInputValue<number>;
+  m: ValidatedInputValue<number>;
   generationMatrix: Matrix | undefined;
   controlMatrices: Matrix[] | undefined;
 }
@@ -15,7 +15,7 @@ export const parameterInputContextPropsInitial: ParameterInputContextProps = {
     input: '0.1',
     validValue: 0.1,
   },
-  n: {
+  m: {
     status: 'success',
     input: '3',
     validValue: 3,

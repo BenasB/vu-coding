@@ -12,11 +12,11 @@ import { ValidatedInputValue } from '../utils/types';
 interface Props {
   pe: ValidatedInputValue<number>;
   setPe: React.Dispatch<React.SetStateAction<ValidatedInputValue<number>>>;
-  n: ValidatedInputValue<number>;
+  m: ValidatedInputValue<number>;
   setN: React.Dispatch<React.SetStateAction<ValidatedInputValue<number>>>;
 }
 
-const ParameterInputGroup: React.FC<Props> = ({ pe, setPe, n, setN }) => {
+const ParameterInputGroup: React.FC<Props> = ({ pe, setPe, m, setN }) => {
   const handlePeChange = (valueAsString: string, valueAsNumber: number) => {
     if (isNaN(valueAsNumber))
       setPe({
@@ -74,21 +74,21 @@ const ParameterInputGroup: React.FC<Props> = ({ pe, setPe, n, setN }) => {
           <FormErrorMessage>{pe.message}</FormErrorMessage>
         )}
       </FormControl>
-      <FormControl isInvalid={n.status === 'fail'}>
+      <FormControl isInvalid={m.status === 'fail'}>
         <InputGroup>
-          <InputLeftAddon>n</InputLeftAddon>
+          <InputLeftAddon>m</InputLeftAddon>
           <NumberInput
             min={1}
             w="full"
             isRequired
-            value={n.input}
+            value={m.input}
             onChange={handleNChange}
           >
             <NumberInputField borderLeftRadius={0} />
           </NumberInput>
         </InputGroup>
-        {n.status === 'fail' && (
-          <FormErrorMessage>{n.message}</FormErrorMessage>
+        {m.status === 'fail' && (
+          <FormErrorMessage>{m.message}</FormErrorMessage>
         )}
       </FormControl>
     </>
