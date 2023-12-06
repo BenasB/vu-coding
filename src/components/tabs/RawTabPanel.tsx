@@ -138,11 +138,7 @@ const RawTabPanel: React.FC = () => {
           <Tooltip label="Error vector">
             <InputLeftAddon>e</InputLeftAddon>
           </Tooltip>
-          <Input
-            isReadOnly
-            value={e}
-            isDisabled={e === undefined || eCount === undefined}
-          />
+          <Input isReadOnly value={e} isDisabled={e === ''} />
           <Tooltip label="Error count">
             <InputRightAddon>{eCount}</InputRightAddon>
           </Tooltip>
