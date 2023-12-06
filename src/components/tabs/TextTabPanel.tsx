@@ -15,14 +15,15 @@ import {
   textToBinaryString,
 } from '../../utils/type-utils';
 import { BinaryString, ValidatedInputValue } from '../../utils/types';
-import passThroughChannel from '../../logic/channel';
-import { useGetParameterInput } from '../../state/ParameterInputContext';
-import { reedMullerEncode } from '../../logic/encoding/rmEncoding';
-import { reedMullerDecode } from '../../logic/decoding/rmDecoding';
+import {
+  useBinaryPaddingCount,
+  useC,
+  useVPrime,
+  useVPrimeUncoded,
+  useY,
+} from '../../state/codingMemos';
 
 const RawTabPanel: React.FC = () => {
-  const { pe, n, generationMatrix, controlMatrices } = useGetParameterInput();
-
   const [textInput, setTextInput] = useState<string>('');
   const handleOnTextInputChange = (
     e: React.ChangeEvent<HTMLTextAreaElement>,
@@ -55,109 +56,10 @@ const RawTabPanel: React.FC = () => {
     }
   }, [textInput]);
 
-  const padding = useMemo<number | undefined>(
-    () =>
-      v.status === 'success' && n.status === 'success'
-        ? (n.validValue + 1 - (v.validValue.length % (n.validValue + 1))) %
-          (n.validValue + 1)
-        : undefined,
-    [v, n],
-  );
-
-  const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (
-      v.status !== 'success' ||
-      n.status !== 'success' ||
-      generationMatrix === undefined ||
-      padding === undefined
-    )
-      return { status: 'pending', input: '' };
-
-    try {
-      const encodedValue = reedMullerEncode(
-        createBinaryString(
-          v.validValue.padEnd(v.validValue.length + padding, '0'),
-        ),
-        n.validValue,
-        generationMatrix,
-      );
-      return {
-        status: 'success',
-        input: encodedValue,
-        validValue: encodedValue,
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        return {
-          status: 'fail',
-          input: '',
-          message: err.message,
-        };
-      }
-
-      return {
-        status: 'fail',
-        input: '',
-        message: 'Ran into a problem while decoding',
-      };
-    }
-  }, [v, n, generationMatrix, padding]);
-
-  const y = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (pe.status !== 'success' || c.status !== 'success') {
-      return {
-        status: 'pending',
-        input: '',
-      };
-    }
-
-    const newY = passThroughChannel(c.validValue, pe.validValue);
-    return {
-      status: 'success',
-      input: newY,
-      validValue: newY,
-    };
-  }, [pe, c]);
-
-  const vPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (
-      y.status !== 'success' ||
-      n.status !== 'success' ||
-      controlMatrices === undefined
-    ) {
-      return {
-        status: 'pending',
-        input: '',
-      };
-    }
-
-    try {
-      const decodedValue = reedMullerDecode(
-        y.validValue,
-        controlMatrices,
-        n.validValue,
-      );
-      return {
-        status: 'success',
-        input: decodedValue,
-        validValue: decodedValue,
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        return {
-          status: 'fail',
-          input: '',
-          message: err.message,
-        };
-      }
-
-      return {
-        status: 'fail',
-        input: '',
-        message: 'Ran into a problem while decoding',
-      };
-    }
-  }, [y, n, controlMatrices]);
+  const padding = useBinaryPaddingCount(v);
+  const c = useC(v, padding);
+  const y = useY(c);
+  const vPrime = useVPrime(y);
 
   const outputText = useMemo<ValidatedInputValue<string>>(() => {
     if (vPrime.status !== 'success' || padding === undefined)
@@ -193,39 +95,7 @@ const RawTabPanel: React.FC = () => {
     }
   }, [vPrime, padding]);
 
-  const uncodedOutputText = useMemo<ValidatedInputValue<string>>(() => {
-    if (pe.status !== 'success' || v.status !== 'success') {
-      return {
-        status: 'pending',
-        input: '',
-      };
-    }
-
-    const vPrimeUncoded = passThroughChannel(v.validValue, pe.validValue);
-
-    try {
-      const text = binaryStringToText(vPrimeUncoded);
-      return {
-        status: 'success',
-        input: text,
-        validValue: text,
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        return {
-          status: 'fail',
-          input: '',
-          message: err.message,
-        };
-      }
-
-      return {
-        status: 'fail',
-        input: '',
-        message: 'Ran into a problem while converting m prime to text',
-      };
-    }
-  }, [pe, v]);
+  const uncodedOutputText = useVPrimeUncoded(v, binaryStringToText);
 
   return (
     <VStack spacing={4}>

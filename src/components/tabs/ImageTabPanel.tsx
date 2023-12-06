@@ -18,16 +18,17 @@ import {
   createBinaryString,
 } from '../../utils/type-utils';
 import { decode as bmpDecode } from 'bmp-js';
-import passThroughChannel from '../../logic/channel';
-import { useGetParameterInput } from '../../state/ParameterInputContext';
-import { reedMullerEncode } from '../../logic/encoding/rmEncoding';
-import { reedMullerDecode } from '../../logic/decoding/rmDecoding';
+import {
+  useBinaryPaddingCount,
+  useC,
+  useVPrime,
+  useVPrimeUncoded,
+  useY,
+} from '../../state/codingMemos';
 
 const BYTE_SIZE = 8;
 
 const ImageTabPanel: React.FC = () => {
-  const { pe, n, controlMatrices, generationMatrix } = useGetParameterInput();
-
   const [imageInput, setImageInput] = useState<File | undefined>(undefined);
   const handleOnImageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.item(0);
@@ -77,117 +78,10 @@ const ImageTabPanel: React.FC = () => {
     };
   }, [imageInput]);
 
-  const padding = useMemo<number | undefined>(
-    () =>
-      v.status === 'success' && n.status === 'success'
-        ? (n.validValue + 1 - (v.validValue.length % (n.validValue + 1))) %
-          (n.validValue + 1)
-        : undefined,
-    [v, n],
-  );
-
-  const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (
-      v.status !== 'success' ||
-      n.status !== 'success' ||
-      generationMatrix === undefined ||
-      padding === undefined
-    )
-      return { status: 'pending', input: '' };
-
-    try {
-      const timeBefore = new Date();
-      const encodedValue = reedMullerEncode(
-        createBinaryString(
-          v.validValue.padEnd(v.validValue.length + padding, '0'),
-        ),
-        n.validValue,
-        generationMatrix,
-      );
-      console.log(
-        `Encoding took: ${new Date().getTime() - timeBefore.getTime()} ms`,
-      );
-      return {
-        status: 'success',
-        input: encodedValue,
-        validValue: encodedValue,
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        return {
-          status: 'fail',
-          input: '',
-          message: err.message,
-        };
-      }
-
-      return {
-        status: 'fail',
-        input: '',
-        message: 'Ran into a problem while decoding',
-      };
-    }
-  }, [v, n, generationMatrix, padding]);
-
-  const y = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (pe.status !== 'success' || c.status !== 'success') {
-      return {
-        status: 'pending',
-        input: '',
-      };
-    }
-
-    const newY = passThroughChannel(c.validValue, pe.validValue);
-    return {
-      status: 'success',
-      input: newY,
-      validValue: newY,
-    };
-  }, [pe, c]);
-
-  const vPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (
-      y.status !== 'success' ||
-      n.status !== 'success' ||
-      controlMatrices === undefined
-    ) {
-      return {
-        status: 'pending',
-        input: '',
-      };
-    }
-
-    try {
-      const timeBefore = new Date();
-      const decodedValue = reedMullerDecode(
-        y.validValue,
-        controlMatrices,
-        n.validValue,
-      );
-      console.log(
-        `Decoding took: ${new Date().getTime() - timeBefore.getTime()} ms`,
-      );
-      return {
-        status: 'success',
-        input: decodedValue,
-        validValue: decodedValue,
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        return {
-          status: 'fail',
-          input: '',
-          message: err.message,
-        };
-      }
-
-      return {
-        status: 'fail',
-        input: '',
-        message: 'Ran into a problem while decoding',
-      };
-    }
-  }, [y, n, controlMatrices]);
+  const padding = useBinaryPaddingCount(v);
+  const c = useC(v, padding);
+  const y = useY(c);
+  const vPrime = useVPrime(y);
 
   const afterImage = useMemo<ValidatedInputValue<string>>(() => {
     if (
@@ -238,46 +132,12 @@ const ImageTabPanel: React.FC = () => {
     }
   }, [vPrime, beforeImage, padding]);
 
-  const uncodedAfterImage = useMemo<ValidatedInputValue<string>>(() => {
-    if (
-      pe.status !== 'success' ||
-      v.status !== 'success' ||
-      beforeImage === undefined
-    ) {
-      return {
-        status: 'pending',
-        input: '',
-      };
-    }
-
-    const vPrimeUncoded = passThroughChannel(v.validValue, pe.validValue);
-
-    try {
-      const base64Buffer = Buffer.concat([
-        beforeImage.header,
-        Buffer.from(binaryStringToArrayBuffer(vPrimeUncoded, BYTE_SIZE)),
-      ]).toString('base64');
-      return {
-        status: 'success',
-        input: base64Buffer,
-        validValue: base64Buffer,
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        return {
-          status: 'fail',
-          input: '',
-          message: err.message,
-        };
-      }
-
-      return {
-        status: 'fail',
-        input: '',
-        message: 'Ran into a problem while converting m prime to text',
-      };
-    }
-  }, [pe, v, beforeImage]);
+  const uncodedAfterImage = useVPrimeUncoded(v, channelOutput =>
+    Buffer.concat([
+      beforeImage?.header ?? new Uint8Array(0),
+      Buffer.from(binaryStringToArrayBuffer(channelOutput, BYTE_SIZE)),
+    ]).toString('base64'),
+  );
 
   return (
     <VStack spacing={4}>
