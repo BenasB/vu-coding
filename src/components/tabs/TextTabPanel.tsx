@@ -261,7 +261,11 @@ const RawTabPanel: React.FC = () => {
       )}
       <FormControl isInvalid={uncodedOutputText.status === 'fail'}>
         <InputGroup alignItems={'stretch'}>
-          <InputLeftAddon height={'auto'}>Output (uncoded)</InputLeftAddon>
+          <InputLeftAddon height={'auto'}>
+            Output
+            <br />
+            (uncoded)
+          </InputLeftAddon>
           <Textarea value={uncodedOutputText.input} isReadOnly />
         </InputGroup>
         {uncodedOutputText.status === 'fail' && (

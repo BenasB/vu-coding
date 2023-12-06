@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertIcon,
   FormControl,
   FormErrorMessage,
   Image,
@@ -13,18 +15,18 @@ import { readFileAsArrayBuffer } from '../../utils/file-utils';
 import {
   arrayBufferToBinaryString,
   binaryStringToArrayBuffer,
+  createBinaryString,
 } from '../../utils/type-utils';
-import { ImgComparisonSlider } from '@img-comparison-slider/react';
 import { decode as bmpDecode } from 'bmp-js';
 import passThroughChannel from '../../logic/channel';
-import repeatDecode from '../../logic/decoding/repeatDecoding';
-import repeatEncode from '../../logic/encoding/repeatEncoding';
 import { useGetParameterInput } from '../../state/ParameterInputContext';
+import { reedMullerEncode } from '../../logic/encoding/rmEncoding';
+import { reedMullerDecode } from '../../logic/decoding/rmDecoding';
 
 const BYTE_SIZE = 8;
 
 const ImageTabPanel: React.FC = () => {
-  const { pe, n } = useGetParameterInput();
+  const { pe, n, controlMatrices, generationMatrix } = useGetParameterInput();
 
   const [imageInput, setImageInput] = useState<File | undefined>(undefined);
   const handleOnImageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,18 +77,57 @@ const ImageTabPanel: React.FC = () => {
     };
   }, [imageInput]);
 
+  const padding = useMemo<number | undefined>(
+    () =>
+      m.status === 'success' && n.status === 'success'
+        ? (n.validValue + 1 - (m.validValue.length % (n.validValue + 1))) %
+          (n.validValue + 1)
+        : undefined,
+    [m, n],
+  );
+
   const c = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (m.status !== 'success' || n.status !== 'success')
+    if (
+      m.status !== 'success' ||
+      n.status !== 'success' ||
+      generationMatrix === undefined ||
+      padding === undefined
+    )
       return { status: 'pending', input: '' };
 
-    const encodedValue = repeatEncode(m.validValue, n.validValue);
+    try {
+      const timeBefore = new Date();
+      const encodedValue = reedMullerEncode(
+        createBinaryString(
+          m.validValue.padEnd(m.validValue.length + padding, '0'),
+        ),
+        n.validValue,
+        generationMatrix,
+      );
+      console.log(
+        `Encoding took: ${new Date().getTime() - timeBefore.getTime()} ms`,
+      );
+      return {
+        status: 'success',
+        input: encodedValue,
+        validValue: encodedValue,
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        return {
+          status: 'fail',
+          input: '',
+          message: err.message,
+        };
+      }
 
-    return {
-      status: 'success',
-      input: encodedValue,
-      validValue: encodedValue,
-    };
-  }, [m, n]);
+      return {
+        status: 'fail',
+        input: '',
+        message: 'Ran into a problem while decoding',
+      };
+    }
+  }, [m, n, generationMatrix, padding]);
 
   const y = useMemo<ValidatedInputValue<BinaryString>>(() => {
     if (pe.status !== 'success' || c.status !== 'success') {
@@ -105,7 +146,11 @@ const ImageTabPanel: React.FC = () => {
   }, [pe, c]);
 
   const mPrime = useMemo<ValidatedInputValue<BinaryString>>(() => {
-    if (y.status !== 'success' || n.status !== 'success') {
+    if (
+      y.status !== 'success' ||
+      n.status !== 'success' ||
+      controlMatrices === undefined
+    ) {
       return {
         status: 'pending',
         input: '',
@@ -113,7 +158,15 @@ const ImageTabPanel: React.FC = () => {
     }
 
     try {
-      const decodedValue = repeatDecode(y.validValue, n.validValue);
+      const timeBefore = new Date();
+      const decodedValue = reedMullerDecode(
+        y.validValue,
+        controlMatrices,
+        n.validValue,
+      );
+      console.log(
+        `Decoding took: ${new Date().getTime() - timeBefore.getTime()} ms`,
+      );
       return {
         status: 'success',
         input: decodedValue,
@@ -134,19 +187,35 @@ const ImageTabPanel: React.FC = () => {
         message: 'Ran into a problem while decoding',
       };
     }
-  }, [y, n]);
+  }, [y, n, controlMatrices]);
 
   const afterImage = useMemo<ValidatedInputValue<string>>(() => {
-    if (mPrime.status !== 'success' || beforeImage === undefined)
+    if (
+      mPrime.status !== 'success' ||
+      beforeImage === undefined ||
+      padding === undefined
+    )
       return {
         status: 'pending',
         input: '',
       };
+
     try {
       const base64Buffer = Buffer.concat([
         beforeImage.header,
-        Buffer.from(binaryStringToArrayBuffer(mPrime.validValue, BYTE_SIZE)),
+        Buffer.from(
+          binaryStringToArrayBuffer(
+            createBinaryString(
+              mPrime.validValue.substring(
+                0,
+                mPrime.validValue.length - padding,
+              ),
+            ),
+            BYTE_SIZE,
+          ),
+        ),
       ]).toString('base64');
+
       return {
         status: 'success',
         input: base64Buffer,
@@ -167,7 +236,7 @@ const ImageTabPanel: React.FC = () => {
         message: 'Ran into a problem while converting m prime to image',
       };
     }
-  }, [mPrime, beforeImage]);
+  }, [mPrime, beforeImage, padding]);
 
   const uncodedAfterImage = useMemo<ValidatedInputValue<string>>(() => {
     if (
@@ -229,26 +298,57 @@ const ImageTabPanel: React.FC = () => {
         </InputGroup>
       </FormControl>
       {beforeImage && (
+        <FormControl>
+          <InputGroup alignItems={'stretch'}>
+            <InputLeftAddon height={'auto'}>Input</InputLeftAddon>
+            <Image
+              src={`data:image/*;base64,${Buffer.concat([
+                beforeImage.header,
+                beforeImage.data,
+              ]).toString('base64')}`}
+              alignSelf={'start'}
+            />
+          </InputGroup>
+        </FormControl>
+      )}
+      {m.status === 'fail' && (
+        <Alert status="error">
+          <AlertIcon />
+          {m.message}
+        </Alert>
+      )}
+      {c.status === 'fail' && (
+        <Alert status="error">
+          <AlertIcon />
+          {c.message}
+        </Alert>
+      )}
+      {y.status === 'fail' && (
+        <Alert status="error">
+          <AlertIcon />
+          {y.message}
+        </Alert>
+      )}
+      {mPrime.status === 'fail' && (
+        <Alert status="error">
+          <AlertIcon />
+          {mPrime.message}
+        </Alert>
+      )}
+      {beforeImage && (
         <FormControl isInvalid={uncodedAfterImage.status === 'fail'}>
           <InputGroup alignItems={'stretch'}>
-            <InputLeftAddon height={'auto'}>Output (uncoded)</InputLeftAddon>
-            <ImgComparisonSlider>
+            <InputLeftAddon height={'auto'}>
+              Output
+              <br />
+              (uncoded)
+            </InputLeftAddon>
+            {uncodedAfterImage.status === 'success' && (
               <Image
-                slot="first"
-                src={`data:image/*;base64,${Buffer.concat([
-                  beforeImage.header,
-                  beforeImage.data,
-                ]).toString('base64')}`}
-                width={'100%'}
+                src={`data:image/*;base64,${uncodedAfterImage.validValue}`}
+                alignSelf={'start'}
               />
-              {uncodedAfterImage.status === 'success' && (
-                <Image
-                  slot="second"
-                  src={`data:image/*;base64,${uncodedAfterImage.validValue}`}
-                  width={'100%'}
-                />
-              )}
-            </ImgComparisonSlider>
+            )}
           </InputGroup>
           {uncodedAfterImage.status === 'fail' && (
             <FormErrorMessage>{uncodedAfterImage.message}</FormErrorMessage>
@@ -259,23 +359,12 @@ const ImageTabPanel: React.FC = () => {
         <FormControl isInvalid={afterImage.status === 'fail'}>
           <InputGroup alignItems={'stretch'}>
             <InputLeftAddon height={'auto'}>Output</InputLeftAddon>
-            <ImgComparisonSlider>
+            {afterImage.status === 'success' && (
               <Image
-                slot="first"
-                src={`data:image/*;base64,${Buffer.concat([
-                  beforeImage.header,
-                  beforeImage.data,
-                ]).toString('base64')}`}
-                width={'100%'}
+                src={`data:image/*;base64,${afterImage.validValue}`}
+                alignSelf={'start'}
               />
-              {afterImage.status === 'success' && (
-                <Image
-                  slot="second"
-                  src={`data:image/*;base64,${afterImage.validValue}`}
-                  width={'100%'}
-                />
-              )}
-            </ImgComparisonSlider>
+            )}
           </InputGroup>
           {afterImage.status === 'fail' && (
             <FormErrorMessage>{afterImage.message}</FormErrorMessage>
