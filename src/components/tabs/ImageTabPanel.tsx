@@ -146,7 +146,7 @@ const ImageTabPanel: React.FC = () => {
           <InputLeftAddon>Input</InputLeftAddon>
           <Input
             type="file"
-            accept="image/*"
+            accept=".bmp"
             onChange={handleOnImageInputChange}
             sx={{
               '::file-selector-button': {
