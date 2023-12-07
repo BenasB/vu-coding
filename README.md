@@ -33,7 +33,7 @@ Apart from those, I've also used some built in functions, mainly:
 
 Since this is an SPA, the build output of this application is static HTML/CSS/JS files. Furthermore, this is built using [Node.js](https://nodejs.org/en) (it provides you the `npm` command).
 
-To generate the build, you can run: `npm run build`. Build output will be present in `dist/` directory, so you can use your favorite web server (e. g. nginx, caddy) to serve it locally.
+To generate the build, you can run: `npm install` and then `npm run build`. Build output will be present in `dist/` directory, so you can use your favorite HTTP web server (e. g. nginx, caddy) to serve it locally. If you have Node.js, you can do that by running `npx serve <path>`
 
 I have set up a web server for you: [https://benasb.github.io/vu-coding/](https://benasb.github.io/vu-coding/)
 
