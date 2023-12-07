@@ -51,6 +51,12 @@ describe('binaryStringToText', () => {
     const aInBinary: BinaryString = createBinaryString('0000000001100001');
     expect(binaryStringToText(aInBinary)).toBe('a');
   });
+  it('converts multiple chars', () => {
+    const aInBinary: BinaryString = createBinaryString(
+      '00000000011000010000000001100010',
+    );
+    expect(binaryStringToText(aInBinary)).toBe('ab');
+  });
 });
 
 describe('arrayBufferToBinaryString', () => {

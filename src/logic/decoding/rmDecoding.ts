@@ -3,6 +3,7 @@ import {
   createBinaryString,
 } from '../../utils/type-utils';
 import { BinaryString } from '../../utils/types';
+import { chunk } from '../math/array';
 import {
   Matrix,
   identityMatrix,
@@ -43,12 +44,7 @@ export const reedMullerDecode: (
 
   const inputArray = binaryStringToVector(input);
 
-  // Chunk vectors into pieces of vectorLength
-  const vectors = [
-    ...(Array(Math.ceil(inputArray.length / vectorLength)) as undefined[]),
-  ]
-    .map((_, index) => index * vectorLength)
-    .map<number[]>(begin => inputArray.slice(begin, begin + vectorLength));
+  const vectors = chunk(inputArray, vectorLength);
 
   const decodedVectors = vectors
     .map(w => w.map(x => (x === 0 ? -1 : x))) // Replace all 0s with -1s

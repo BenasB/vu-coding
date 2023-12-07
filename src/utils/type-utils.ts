@@ -1,3 +1,4 @@
+import { chunk } from '../logic/math/array';
 import { BinaryString } from './types';
 
 export const UTF16_CHAR_SIZE = 16;
@@ -19,11 +20,7 @@ export const binaryStringToText: (input: BinaryString) => string = input => {
       `Binary string of length '${input.length}' could not be split into chunks of 16`,
     );
 
-  const stringChars = [
-    ...(Array(Math.ceil(input.length / UTF16_CHAR_SIZE)) as undefined[]),
-  ]
-    .map((_, index) => index * UTF16_CHAR_SIZE)
-    .map<string>(begin => input.slice(begin, begin + UTF16_CHAR_SIZE));
+  const stringChars = chunk(input.toString(), UTF16_CHAR_SIZE);
 
   return stringChars.map(x => String.fromCharCode(parseInt(x, 2))).join('');
 };
