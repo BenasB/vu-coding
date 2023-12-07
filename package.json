@@ -9,7 +9,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "format": "prettier --write .",
-    "test": "jest"
+    "test": "jest",
+    "experiment": "ts-node --esm --experimental-specifier-resolution=node src/experiment.ts"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.8.0",

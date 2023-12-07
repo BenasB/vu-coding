@@ -79,6 +79,45 @@ You can always start over by refreshign the page.
 
 ### Experiment
 
+I chose to analyze the behaviour of the RM(1, m) code for different m values in terms of mistakes made and elapsed time.
+
+#### Values
+
+- `m` will be go over the range `[1, 6]`
+- `pe` (channel distortion probablity) is `0.1`
+- The input is a randomly generated binary string of `1000000` bits. This string is hardcoded into the experiment and the same for all tests.
+- For each `m`, the test will be performed 10 times and an average of the test results will be taken.
+
+#### Definitions
+
+- Mistake – a single bit difference between the input and the decoded output. To count the mistakes, you just go over all of the bits (from 1 to 1000000) and compare the bits at that position. If the values do not match, you count a mistake.
+- Elapsed time – the elapsed time (in milliseconds) covering generation matrix and control matrices preparation, encoding, passing through the channel and decoding. Counting of mistakes is not in scope of this time.
+
+#### Performing
+
+You can run `npm run experiment`. The average values over the tests will be printed out in the console.
+
+#### Results
+
+| m   | Mistakes (bits) | Elapsed time (ms) |
+| --- | --------------- | ----------------- |
+| 1   | 140029.3        | 1011              |
+| 2   | 165364.6        | 997.4             |
+| 3   | 82895.5         | 1119.1            |
+| 4   | 22498.1         | 1827.9            |
+| 5   | 794.5           | 4261.1            |
+| 6   | 0.9             | 13492.5           |
+
+This can be visualized with a graph (as requested in the task)
+
+![Graph of the experiment results](./public/graph.png)
+
+#### Conclusion
+
+Bigger values of `m` for the code RM(1,m) lead to less mistakes made but more elapsed time. Based on theory, apart from time, we can also tell that this also has a drawback for space efficiency, since the matrices become large and encoded words become lenghtier.
+
+Interesting insight between `m = 1` and `m = 2`. The second one on average has more mistakes that the first one. This can probably be explained that the coded words on the second one are longer, hence there is more "space" for distortions to occur and the coded word is not yet big enough to correct those mistakes.
+
 ### References
 
 - [[HLL91, §3.8–3.9, p. 89–95]](https://klevas.mif.vu.lt/~skersys/doc/ktkt/literatura13.pdf)
