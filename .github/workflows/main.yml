@@ -24,7 +24,7 @@ jobs:
         run: npm run test
 
       - name: Run build script 🔧
-        run: npm run build
+        run: npm run build -- --base=/vu-coding
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
